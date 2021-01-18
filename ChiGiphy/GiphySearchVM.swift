@@ -68,7 +68,7 @@ class GiphySearchVM {
         //TODO: Handle on error
         
         /// Listens for search inputs and fetches data
-        searchQuery.throttle(Self.searchFrequence, scheduler: MainScheduler.instance)
+        searchQuery.debounce(Self.searchFrequence, scheduler: MainScheduler.instance)
             .distinctUntilChanged()
             .flatMapLatest { query -> Observable<[GiphyItem]> in
                 return GiphyService.shared.search(text: query, limit: Self.pageSize).catchErrorJustReturn([])
