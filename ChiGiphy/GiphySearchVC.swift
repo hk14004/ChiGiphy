@@ -9,16 +9,33 @@ import UIKit
 import RxDataSources
 import RxSwift
 import RxCocoa
+import Cartography
 
 typealias GiphySection = AnimatableSectionModel<String, GiphyItem>
 
-class GiphySearchVC: UIViewController {
+class GiphySearchVC: GenericSearchVC<GiphyItem> {
     
-    var dataSource: RxCollectionViewSectionedAnimatedDataSource<GiphySection>?
+    private let _loadingView: UIView = {
+        let view = UIView(frame: .zero)
+        let label = UILabel(frame: .zero)
+        label.text = "Loading..."
+        label.textAlignment = .center
+        view.addSubview(label)
+        constrain(label) { label in
+            label.edges == label.superview!.edges
+        }
+        return view
+    }()
+    
+    override var loadingView: UIView? {
+        return _loadingView
+    }
     
     private let disposeBag = DisposeBag()
     
     private let viewModel: GiphySearchVM
+    
+    var dataSource: RxCollectionViewSectionedAnimatedDataSource<GiphySection>?
     
     private let gifCollectionView = UICollectionView(frame: CGRect(),
                                                      collectionViewLayout: createLayout())
@@ -29,37 +46,31 @@ class GiphySearchVC: UIViewController {
         configureDataSource()
         bindToViewModel()
         setupCollectionView()
-        viewModel.load()
+        setupLoadingView()
+    }
+    
+    private func setupLoadingView() {
+        view.addSubview(loadingView!)
+        constrain(loadingView!) { (loading) in
+            loading.edges == loading.superview!.edges
+        }
     }
     
     private func setupNavigationBar() {
-        title = "Giphy Searcher"
-        navigationItem.hidesSearchBarWhenScrolling = false
-        
-        let searchController = UISearchController(searchResultsController: nil)
-        searchController.automaticallyShowsCancelButton = false
-        searchController.hidesNavigationBarDuringPresentation = false
-        //searchController.searchResultsUpdater = self.viewModel
-        searchController.searchBar.text = "warzone"
-        searchController.obscuresBackgroundDuringPresentation = false
-        searchController.searchBar.placeholder = "Search gif"
-        navigationItem.searchController = searchController
+        title = viewModel.title
     }
     
     private func bindToViewModel() {
-        guard let searchBar = navigationItem.searchController?.searchBar else { return }
-        searchBar.rx.text.orEmpty.bind(to: viewModel.searchQuery).disposed(by: self.disposeBag)
-        
-        guard let dataSource = dataSource else { return }
-        
-        viewModel.sectionData.drive(gifCollectionView.rx.items(dataSource: dataSource)).disposed(by: self.disposeBag)
-        
-//        viewModel.sectionData
-//            .bind(to: gifCollectionView.rx.items(dataSource: dataSource))
-//            .disposed(by: self.disposeBag)
+        if let dataSource = dataSource {
+            viewModel.sectionData.drive(
+                gifCollectionView.rx.items(dataSource: dataSource)).disposed(by: self.disposeBag
+            )
+        } else {
+            fatalError("No data source")
+        }
         
         gifCollectionView.rx.willDisplayCell.map { $1 }
-            .bind(to: viewModel.contentWillBeShownAt)
+            .bind(to: viewModel.indexPathWillBeShown)
             .disposed(by: self.disposeBag)
     }
     
@@ -92,7 +103,7 @@ class GiphySearchVC: UIViewController {
     
     required init(viewModel: GiphySearchVM) {
         self.viewModel = viewModel
-        super.init(nibName: nil, bundle: nil)
+        super.init(viewModel: viewModel)
     }
     
     required init?(coder: NSCoder) {

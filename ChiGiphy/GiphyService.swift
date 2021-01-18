@@ -10,7 +10,7 @@ import RxSwift
 
 struct GiphySearchResponse: Decodable {
     let data: [GiphyItem]
-    let pagination: Pagination
+    //let pagination: Pagination
 }
 
 struct Pagination: Decodable {
@@ -21,11 +21,8 @@ struct Pagination: Decodable {
 
 class GiphyService {
     static let shared = GiphyService()
-    typealias PageingCache = [String:Pagination]
     private let apiKey = "X09nb1IgWr4u7dxoMJbZ8iQs3ClrlAM0"
-    
-    private var pageStatusCache = PageingCache()
-    
+        
     func search(text: String, offset: Int = 0, limit: Int = 20) -> Observable<[GiphyItem]> {
         let url = URL(string: "http://api.giphy.com/v1/gifs/search")!
         var request = URLRequest(url: url)
@@ -43,8 +40,12 @@ class GiphyService {
         
         request.url = urlComponents.url!
         
+        print(request.url!)
         return URLSession.shared.rx
             .decodable(request: request, type: GiphySearchResponse.self)
-            .map { $0.data }
+            .map {
+                $0.data
+                
+            }
     }
 }

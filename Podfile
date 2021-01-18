@@ -11,5 +11,6 @@ target 'ChiGiphy' do
   pod 'RxDataSources', '~> 3.1'
   pod 'Action', '~> 3.9'
   pod 'Gifu'
-
+  pod 'Cartography', '~> 3.0'
+  
 end
