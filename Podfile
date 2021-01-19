@@ -12,5 +12,6 @@ target 'ChiGiphy' do
   pod 'Action', '~> 3.9'
   pod 'Gifu'
   pod 'Cartography', '~> 3.0'
-  
+  pod 'NVActivityIndicatorView'
+
 end

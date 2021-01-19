@@ -15,22 +15,6 @@ typealias GiphySection = AnimatableSectionModel<String, GiphyItem>
 
 class GiphySearchVC: GenericSearchVC<GiphyItem> {
     
-    private let _loadingView: UIView = {
-        let view = UIView(frame: .zero)
-        let label = UILabel(frame: .zero)
-        label.text = "Loading..."
-        label.textAlignment = .center
-        view.addSubview(label)
-        constrain(label) { label in
-            label.edges == label.superview!.edges
-        }
-        return view
-    }()
-    
-    override var loadingView: UIView? {
-        return _loadingView
-    }
-    
     private let disposeBag = DisposeBag()
     
     private let viewModel: GiphySearchVM
@@ -43,17 +27,19 @@ class GiphySearchVC: GenericSearchVC<GiphyItem> {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupNavigationBar()
-        configureDataSource()
-        bindToViewModel()
         setupCollectionView()
-        setupLoadingView()
+        bindToViewModel()
     }
     
-    private func setupLoadingView() {
-        view.addSubview(loadingView!)
-        constrain(loadingView!) { (loading) in
-            loading.edges == loading.superview!.edges
-        }
+    // MARK: Init
+    
+    required init(viewModel: GiphySearchVM) {
+        self.viewModel = viewModel
+        super.init(viewModel: viewModel)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
     
     private func setupNavigationBar() {
@@ -64,7 +50,7 @@ class GiphySearchVC: GenericSearchVC<GiphyItem> {
         if let dataSource = dataSource {
             viewModel.sectionData.drive(
                 gifCollectionView.rx.items(dataSource: dataSource)).disposed(by: self.disposeBag
-            )
+                )
         } else {
             fatalError("No data source")
         }
@@ -82,44 +68,56 @@ class GiphySearchVC: GenericSearchVC<GiphyItem> {
                 cell.setup(with: item)
                 return cell
             })
+        
+        dataSource?.configureSupplementaryView = {(dataSource, collectionView, kind, indexPath) in
+            switch kind {
+            case UICollectionElementKindSectionFooter:
+                let footerLoadingView = collectionView.dequeueReusableSupplementaryView(ofKind: UICollectionElementKindSectionFooter,
+                                                                                        withReuseIdentifier: LoadingView.reuseIdentifier,
+                                                                                        for: indexPath) as! LoadingView
+                footerLoadingView.setup(with: self.viewModel)
+                return footerLoadingView
+            default:
+                fatalError("Unexpected element kind: \(kind)")
+            }
+        }
+    }
+    
+    private func registerCollectionViewCells() {
+        gifCollectionView.register(LoadingView.self,
+                                   forSupplementaryViewOfKind: UICollectionElementKindSectionFooter,
+                                   withReuseIdentifier: LoadingView.reuseIdentifier)
+        gifCollectionView.register(GiphyCollectionViewCell.self,
+                                   forCellWithReuseIdentifier: GiphyCollectionViewCell.reuseIdentifier)
     }
     
     private func setupCollectionView() {
-        gifCollectionView.register(GiphyCollectionViewCell.self,
-                                   forCellWithReuseIdentifier: GiphyCollectionViewCell.reuseIdentifier)
-        gifCollectionView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(gifCollectionView)
+        registerCollectionViewCells()
         gifCollectionView.backgroundColor = UIColor(named: "Background")
-        // TODO: Provide exension with single call
-        NSLayoutConstraint.activate([
-            gifCollectionView.safeAreaLayoutGuide.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            gifCollectionView.safeAreaLayoutGuide.leftAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leftAnchor),
-            gifCollectionView.safeAreaLayoutGuide.rightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor),
-            gifCollectionView.safeAreaLayoutGuide.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
-        ])
+        view.addSubview(gifCollectionView)
+        constrain(gifCollectionView, view) { $0.edges == $1.edges }
+        configureDataSource()
     }
-    
-    // MARK: Init
-    
-    required init(viewModel: GiphySearchVM) {
-        self.viewModel = viewModel
-        super.init(viewModel: viewModel)
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    static private func createLayout() -> UICollectionViewLayout {
-        let size: CGFloat = 1/2
         
-        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(size), heightDimension: .fractionalWidth(size))
+    //TODO: Improve layout with aspect fit width and height
+    static private func createLayout() -> UICollectionViewLayout {
+        let gifSize: CGFloat = 1/2
+        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(gifSize), heightDimension: .fractionalWidth(gifSize))
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
+        item.contentInsets = NSDirectionalEdgeInsets(top: 2,
+                                                     leading: 2,
+                                                     bottom: 2,
+                                                     trailing: 2)
         
         let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(1))
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
         
         let section = NSCollectionLayoutSection(group: group)
+        
+        let footerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
+        let footerItem = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: footerSize, elementKind: UICollectionElementKindSectionFooter, alignment: .bottom)
+        section.boundarySupplementaryItems = [footerItem]
+        
         let layout = UICollectionViewCompositionalLayout(section: section)
         
         return layout

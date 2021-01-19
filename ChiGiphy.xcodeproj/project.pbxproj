@@ -25,6 +25,7 @@
 		D4ECAD1525B5E71700E0839B /* GenericSearchVM.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4ECAD1425B5E71700E0839B /* GenericSearchVM.swift */; };
 		D4ECAD1825B5E72100E0839B /* GenericSearchVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4ECAD1725B5E72100E0839B /* GenericSearchVC.swift */; };
 		D4ECAD1B25B5EAE800E0839B /* SearchError.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4ECAD1A25B5EAE800E0839B /* SearchError.swift */; };
+		D4ECAD2F25B627A800E0839B /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4ECAD2E25B627A800E0839B /* LoadingView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -49,6 +50,7 @@
 		D4ECAD1425B5E71700E0839B /* GenericSearchVM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericSearchVM.swift; sourceTree = "<group>"; };
 		D4ECAD1725B5E72100E0839B /* GenericSearchVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericSearchVC.swift; sourceTree = "<group>"; };
 		D4ECAD1A25B5EAE800E0839B /* SearchError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchError.swift; sourceTree = "<group>"; };
+		D4ECAD2E25B627A800E0839B /* LoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingView.swift; sourceTree = "<group>"; };
 		E0996226331C091A9B6177D3 /* Pods_ChiGiphy.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ChiGiphy.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -103,6 +105,7 @@
 				D446C47425A8855500098E58 /* LaunchScreen.storyboard */,
 				D446C47725A8855500098E58 /* Info.plist */,
 				D443202A25ABC578000DA72F /* GiphySearchVM.swift */,
+				D4ECAD2E25B627A800E0839B /* LoadingView.swift */,
 				D460300925ABD7780014A8B7 /* GiphyCollectionViewCell.swift */,
 				D443203E25ABC7CB000DA72F /* MainCoordinator.swift */,
 				D4A8B6C525AC98B8007B5F49 /* GiphyService.swift */,
@@ -274,6 +277,7 @@
 				D443204525ABCED5000DA72F /* GiphyItem.swift in Sources */,
 				D4D4671E25ACF16A00BCFE44 /* CoordinatorProtocol.swift in Sources */,
 				D4ECAD1525B5E71700E0839B /* GenericSearchVM.swift in Sources */,
+				D4ECAD2F25B627A800E0839B /* LoadingView.swift in Sources */,
 				D446C46E25A8855400098E58 /* GiphySearchVC.swift in Sources */,
 				D460300A25ABD7780014A8B7 /* GiphyCollectionViewCell.swift in Sources */,
 				D446C46A25A8855400098E58 /* AppDelegate.swift in Sources */,

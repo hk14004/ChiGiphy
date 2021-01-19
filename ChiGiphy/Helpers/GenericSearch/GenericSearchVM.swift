@@ -15,7 +15,6 @@ class GenericSearchVM<T> {
     var searchObserver: AnyObserver<String> {
         return searchSubject.asObserver()
     }
-    
     private(set) var lastQuery: String = ""
      
     // outputs
@@ -46,12 +45,9 @@ class GenericSearchVM<T> {
             .distinctUntilChanged()
             .debounce(0.5, scheduler: MainScheduler.instance)
             .flatMapLatest { [unowned self] term -> Observable<[T]> in
-                // every new try to search, the error signal will
-                // emit nil to hide the error view
                 self.errorSubject.onNext(nil)
-                // switch to loading mode
                 self.loadingSubject.onNext(true)
-                
+                self.contentRelay.accept([])
                 self.lastQuery = term
 
                 return self.search(byTerm: term)

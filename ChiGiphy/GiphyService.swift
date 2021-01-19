@@ -43,9 +43,6 @@ class GiphyService {
         print(request.url!)
         return URLSession.shared.rx
             .decodable(request: request, type: GiphySearchResponse.self)
-            .map {
-                $0.data
-                
-            }
+            .map { $0.data }
     }
 }
