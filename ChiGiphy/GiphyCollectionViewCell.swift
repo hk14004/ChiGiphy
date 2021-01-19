@@ -15,20 +15,8 @@ class GiphyCollectionViewCell: UICollectionViewCell {
     
     private let activityIndicator = UIActivityIndicatorView()
     
-    private var readyToAnimate = false {
-        didSet {
-            if readyToAnimate {
-                activityIndicator.stopAnimating()
-                giphyImageView.startAnimatingGIF()
-                giphyImageView.isHidden = false
-            } else {
-                activityIndicator.startAnimating()
-                giphyImageView.stopAnimatingGIF()
-                giphyImageView.isHidden = true
-            }
-        }
-    }
-    
+    private var viewModel: GiphyCollectionViewCellVM?
+        
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupHearchy()
@@ -61,8 +49,7 @@ class GiphyCollectionViewCell: UICollectionViewCell {
         super.prepareForReuse()
         giphyImageView.prepareForReuse()
         giphyImageView.updateImageIfNeeded()
-        disposable.dispose()
-        disposable = SingleAssignmentDisposable()
+        disposables.forEach { $0.dispose() }
     }
     
     private func setupHearchy() {
@@ -70,30 +57,47 @@ class GiphyCollectionViewCell: UICollectionViewCell {
         contentView.addSubview(giphyImageView)
     }
     
-    func setup(with item: GiphyItem) {
-        self.downloadAndDisplay(gif: item.image.url)
+    private func changeState(readyToAnimate: Bool) {
+        if readyToAnimate {
+            activityIndicator.stopAnimating()
+            giphyImageView.startAnimatingGIF()
+            giphyImageView.isHidden = false
+        } else {
+            activityIndicator.startAnimating()
+            giphyImageView.stopAnimatingGIF()
+            giphyImageView.isHidden = true
+        }
     }
     
-    var disposable = SingleAssignmentDisposable()
     
-    func downloadAndDisplay(gif url: URL) {
-      let request = URLRequest(url: url)
-        readyToAnimate = false
-
-      let s = URLSession.shared.rx.data(request: request)
-        .observeOn(MainScheduler.instance)
-        .subscribe(onNext: { [weak self] imageData in
-          guard let self = self else { return }
-
-            self.giphyImageView.prepareForAnimation(withGIFData: imageData, loopCount: 0) {
-                //print("ready to animate")
-                DispatchQueue.main.async {
-                    self.readyToAnimate = true
+    func setup(with viewModel: GiphyCollectionViewCellVM) {
+        self.viewModel = viewModel
+        
+        let g = viewModel.isLoading.drive(onNext: { isLoading in
+            self.changeState(readyToAnimate: !isLoading)
+        })
+        disposables.append(g)
+        
+        let gg = viewModel.gifDataSubject.subscribe(onNext: { (data) in
+            let ggg = self.prepareForAnimation(with: data).subscribe(onCompleted: {
+                viewModel.preparingForAnimation.onNext(false)
+            })
+            self.disposables.append(ggg)
+        })
+        disposables.append(gg)
+        viewModel.download()
+    }
+        
+    var disposables:[Disposable] = []
+    func prepareForAnimation(with gifData: Data) -> Observable<Void> {
+        return Observable.create { [weak self] observer in
+            DispatchQueue.main.async {
+                self?.giphyImageView.prepareForAnimation(withGIFData: gifData, loopCount: 0) {
+                    observer.onCompleted()
                 }
             }
-        })
-
-      disposable.setDisposable(s)
+            return Disposables.create()
+        }
     }
     
     required init?(coder: NSCoder) {

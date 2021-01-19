@@ -45,4 +45,8 @@ class GiphyService {
             .decodable(request: request, type: GiphySearchResponse.self)
             .map { $0.data }
     }
+    
+    func downloadGif(url: URL) -> Observable<Data> {
+        return URLSession.shared.rx.data(request: URLRequest(url: url))
+    }
 }

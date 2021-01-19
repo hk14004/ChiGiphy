@@ -50,7 +50,7 @@ class GiphySearchVC: GenericSearchVC<GiphyItem> {
         if let dataSource = dataSource {
             viewModel.sectionData.drive(
                 gifCollectionView.rx.items(dataSource: dataSource)).disposed(by: self.disposeBag
-                )
+            )
         } else {
             fatalError("No data source")
         }
@@ -65,7 +65,7 @@ class GiphySearchVC: GenericSearchVC<GiphyItem> {
             configureCell: {
                 (dataSource, collectionView, indexPath, item) -> UICollectionViewCell in
                 let cell: GiphyCollectionViewCell = collectionView.dequeueReusableCell(forIndexPath: indexPath)
-                cell.setup(with: item)
+                cell.setup(with: GiphyCollectionViewCellVM(gifItem: item))
                 return cell
             })
         
