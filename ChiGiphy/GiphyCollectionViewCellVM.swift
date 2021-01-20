@@ -11,29 +11,27 @@ import RxCocoa
 
 class GiphyCollectionViewCellVM {
     
-    private let loadingRelay = BehaviorSubject<Bool>(value: false)
+    private let loadingSubject = BehaviorSubject<Bool>(value: false)
     
-    var isLoading: Driver<Bool> {
-        loadingRelay.asDriver(onErrorJustReturn: true)
+    var isLoadingDriver: Driver<Bool> {
+        loadingSubject.asDriver(onErrorJustReturn: true)
     }
     
-    var preparingForAnimation: AnyObserver<Bool> {
-        loadingRelay.asObserver()
+    var isLoadingObserver: AnyObserver<Bool> {
+        loadingSubject.asObserver()
     }
     
     private let gifItem: GiphyItem
     
     private let disposeBag = DisposeBag()
     
-    let gifDataSubject = PublishSubject<Data>()
-    
-    func download() {
-        loadingRelay.onNext(true)
-        GiphyService.shared.downloadGif(url: gifItem.image.url).subscribe { (gifData) in
-            self.gifDataSubject.onNext(gifData)
-        } onError: { (error) in
-            print("CELL ERROR", error.localizedDescription)
-        }.disposed(by: disposeBag)
+    func loadGifData() -> Observable<Data> {
+        loadingSubject.onNext(true)
+        let o = GiphyService.shared.downloadGif(url: gifItem.image.url).share()
+        o.subscribe(onError: { error in
+            print("cell error")
+        }).disposed(by: disposeBag)
+        return o
     }
     
     init(gifItem: GiphyItem) {

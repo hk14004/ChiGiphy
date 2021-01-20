@@ -67,15 +67,15 @@ class GiphyCollectionViewCell: UICollectionViewCell {
     func setup(with viewModel: GiphyCollectionViewCellVM) {
         self.viewModel = viewModel
         
-        viewModel.isLoading.drive(onNext: { isLoading in
+        viewModel.isLoadingDriver.drive(onNext: { isLoading in
             self.changeState(readyToAnimate: !isLoading)
         }).disposed(by: bag)
 
-        viewModel.gifDataSubject.flatMap { data in
+
+        viewModel.loadGifData().flatMapLatest { (data)  in
             return self.prepareForAnimation(with: data)
-        }.bind(to: viewModel.preparingForAnimation).disposed(by: bag)
-            
-        viewModel.download()
+        }.bind(to: viewModel.isLoadingObserver)
+        .disposed(by: bag)
     }
         
     func prepareForAnimation(with gifData: Data) -> Observable<Bool> {
