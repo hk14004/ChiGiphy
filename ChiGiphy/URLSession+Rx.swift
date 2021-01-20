@@ -93,7 +93,7 @@ extension Reactive where Base: URLSession {
   func decodable<D: Decodable>(request: URLRequest, type: D.Type) -> Observable<D> {
     return data(request: request).map { data in
       let decoder = JSONDecoder()
-        let g = try decoder.decode(type, from: data)
+        _ = try decoder.decode(type, from: data)
       return try decoder.decode(type, from: data)
     }
   }
