@@ -8,6 +8,7 @@
 import UIKit
 import Gifu
 import RxSwift
+import Cartography
 
 class GiphyCollectionViewCell: UICollectionViewCell {
     
@@ -16,33 +17,27 @@ class GiphyCollectionViewCell: UICollectionViewCell {
     private let activityIndicator = UIActivityIndicatorView()
     
     private var bag = DisposeBag()
+    
+    private var viewModel: GiphyCollectionViewCellVM?
         
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupHearchy()
         setupViews()
         setupLayout()
-        contentView.backgroundColor = UIColor(named: "Background")
     }
     
     func setupViews() {
+        contentView.backgroundColor = UIColor.PrimaryBackground
         activityIndicator.hidesWhenStopped = true
-        [giphyImageView, activityIndicator].forEach {
-            $0.translatesAutoresizingMaskIntoConstraints = false
-        }
     }
     
     func setupLayout() {
-        NSLayoutConstraint.activate([
-            giphyImageView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            giphyImageView.leftAnchor.constraint(equalTo: contentView.leftAnchor),
-            giphyImageView.rightAnchor.constraint(equalTo: contentView.rightAnchor),
-            giphyImageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
-        ])
-        NSLayoutConstraint.activate([
-            activityIndicator.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            activityIndicator.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-        ])
+        constrain(giphyImageView, contentView) { $0.edges == $1.edges }
+        constrain(activityIndicator, contentView) {
+            $0.centerY == $1.centerY
+            $0.centerX == $1.centerX
+        }
     }
     
     override func prepareForReuse() {
@@ -69,27 +64,25 @@ class GiphyCollectionViewCell: UICollectionViewCell {
         }
     }
     
-    
     func setup(with viewModel: GiphyCollectionViewCellVM) {
+        self.viewModel = viewModel
         
         viewModel.isLoading.drive(onNext: { isLoading in
             self.changeState(readyToAnimate: !isLoading)
         }).disposed(by: bag)
-        
-        viewModel.gifDataSubject.subscribe(onNext: { (data) in
-            self.prepareForAnimation(with: data).subscribe(onCompleted: {
-                viewModel.preparingForAnimation.onNext(false)
-            }).disposed(by: self.bag)
+
+        viewModel.gifDataSubject.flatMap { data in
+            return self.prepareForAnimation(with: data)
+        }.bind(to: viewModel.preparingForAnimation).disposed(by: bag)
             
-        }).disposed(by: bag)
-        
         viewModel.download()
     }
         
-    func prepareForAnimation(with gifData: Data) -> Observable<Void> {
-        return Observable.create { [weak self] observer in
+    func prepareForAnimation(with gifData: Data) -> Observable<Bool> {
+        return Observable.create { observer in
             DispatchQueue.main.async {
-                self?.giphyImageView.prepareForAnimation(withGIFData: gifData, loopCount: 0) {
+                self.giphyImageView.prepareForAnimation(withGIFData: gifData, loopCount: 0) {
+                    observer.onNext(false)
                     observer.onCompleted()
                 }
             }

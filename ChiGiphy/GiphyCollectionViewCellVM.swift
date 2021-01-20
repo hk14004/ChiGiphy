@@ -11,8 +11,8 @@ import RxCocoa
 
 class GiphyCollectionViewCellVM {
     
-    // outputs
     private let loadingRelay = BehaviorSubject<Bool>(value: false)
+    
     var isLoading: Driver<Bool> {
         loadingRelay.asDriver(onErrorJustReturn: true)
     }
@@ -33,10 +33,6 @@ class GiphyCollectionViewCellVM {
             self.gifDataSubject.onNext(gifData)
         } onError: { (error) in
             print("CELL ERROR", error.localizedDescription)
-        } onCompleted: {
-            print("Completed")
-        } onDisposed: {
-            print("Disposed")
         }.disposed(by: disposeBag)
     }
     

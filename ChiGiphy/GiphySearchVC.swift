@@ -93,7 +93,7 @@ class GiphySearchVC: GenericSearchVC<GiphyItem> {
     
     private func setupCollectionView() {
         registerCollectionViewCells()
-        gifCollectionView.backgroundColor = UIColor(named: "Background")
+        gifCollectionView.backgroundColor = UIColor.PrimaryBackground
         view.addSubview(gifCollectionView)
         constrain(gifCollectionView, view) { $0.edges == $1.edges }
         configureDataSource()
