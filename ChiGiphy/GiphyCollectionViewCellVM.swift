@@ -27,11 +27,13 @@ class GiphyCollectionViewCellVM {
     
     func loadGifData() -> Observable<Data> {
         loadingSubject.onNext(true)
-        let o = GiphyService.shared.downloadGif(url: gifItem.image.url).share()
-        o.subscribe(onError: { error in
+        let downloadObservable = GiphyService.shared.downloadGif(url: gifItem.image.url)
+            .retry() //TOOD: Exp back off via RxSwiftExt?
+            .share()
+        downloadObservable.subscribe(onError: { error in
             print("cell error")
         }).disposed(by: disposeBag)
-        return o
+        return downloadObservable
     }
     
     init(gifItem: GiphyItem) {
