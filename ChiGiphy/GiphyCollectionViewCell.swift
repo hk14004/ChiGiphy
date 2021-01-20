@@ -15,7 +15,7 @@ class GiphyCollectionViewCell: UICollectionViewCell {
     
     private let activityIndicator = UIActivityIndicatorView()
     
-    private var viewModel: GiphyCollectionViewCellVM?
+    private var bag = DisposeBag()
         
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -49,7 +49,7 @@ class GiphyCollectionViewCell: UICollectionViewCell {
         super.prepareForReuse()
         giphyImageView.prepareForReuse()
         giphyImageView.updateImageIfNeeded()
-        disposables.forEach { $0.dispose() }
+        bag = DisposeBag()
     }
     
     private func setupHearchy() {
@@ -71,24 +71,21 @@ class GiphyCollectionViewCell: UICollectionViewCell {
     
     
     func setup(with viewModel: GiphyCollectionViewCellVM) {
-        self.viewModel = viewModel
         
-        let g = viewModel.isLoading.drive(onNext: { isLoading in
+        viewModel.isLoading.drive(onNext: { isLoading in
             self.changeState(readyToAnimate: !isLoading)
-        })
-        disposables.append(g)
+        }).disposed(by: bag)
         
-        let gg = viewModel.gifDataSubject.subscribe(onNext: { (data) in
-            let ggg = self.prepareForAnimation(with: data).subscribe(onCompleted: {
+        viewModel.gifDataSubject.subscribe(onNext: { (data) in
+            self.prepareForAnimation(with: data).subscribe(onCompleted: {
                 viewModel.preparingForAnimation.onNext(false)
-            })
-            self.disposables.append(ggg)
-        })
-        disposables.append(gg)
+            }).disposed(by: self.bag)
+            
+        }).disposed(by: bag)
+        
         viewModel.download()
     }
         
-    var disposables:[Disposable] = []
     func prepareForAnimation(with gifData: Data) -> Observable<Void> {
         return Observable.create { [weak self] observer in
             DispatchQueue.main.async {
