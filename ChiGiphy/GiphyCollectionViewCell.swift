@@ -56,11 +56,15 @@ class GiphyCollectionViewCell: UICollectionViewCell {
         if readyToAnimate {
             activityIndicator.stopAnimating()
             giphyImageView.startAnimatingGIF()
-            giphyImageView.isHidden = false
+            UIView.animate(withDuration: 0.3) {
+                self.giphyImageView.isHidden = !readyToAnimate
+                self.giphyImageView.alpha = 1
+            }
+            
         } else {
             activityIndicator.startAnimating()
             giphyImageView.stopAnimatingGIF()
-            giphyImageView.isHidden = true
+            giphyImageView.alpha = 0
         }
     }
     
