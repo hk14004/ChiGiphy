@@ -104,10 +104,10 @@ class GiphySearchVC: GenericSearchVC<GiphyItem> {
         let gifSize: CGFloat = 1/2
         let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(gifSize), heightDimension: .fractionalWidth(gifSize))
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
-        item.contentInsets = NSDirectionalEdgeInsets(top: 2,
-                                                     leading: 2,
-                                                     bottom: 2,
-                                                     trailing: 2)
+        item.contentInsets = NSDirectionalEdgeInsets(top: 1,
+                                                     leading: 1,
+                                                     bottom: 1,
+                                                     trailing: 1)
         
         let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(1))
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
