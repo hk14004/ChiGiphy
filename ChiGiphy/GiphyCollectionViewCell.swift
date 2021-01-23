@@ -30,6 +30,8 @@ class GiphyCollectionViewCell: UICollectionViewCell {
     func setupViews() {
         contentView.backgroundColor = UIColor.PrimaryBackground
         activityIndicator.hidesWhenStopped = true
+        giphyImageView.contentMode = .scaleAspectFill
+        giphyImageView.clipsToBounds = true
     }
     
     func setupLayout() {
@@ -60,7 +62,6 @@ class GiphyCollectionViewCell: UICollectionViewCell {
                 self.giphyImageView.isHidden = !readyToAnimate
                 self.giphyImageView.alpha = 1
             }
-            
         } else {
             activityIndicator.startAnimating()
             giphyImageView.stopAnimatingGIF()
