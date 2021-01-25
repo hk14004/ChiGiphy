@@ -15,6 +15,8 @@ class GiphySearchVM: GenericSearchVM<GiphyItem> {
     
     let title = NSLocalizedString("Giphy Searcher", comment: "")
     
+    let gifColumns = 2
+    
     /// Gif page size
     static private let pageSize = 20
     
@@ -82,5 +84,10 @@ class GiphySearchVM: GenericSearchVM<GiphyItem> {
         return GiphyService.shared.search(text: lastQuery,
                                           offset: contentRelay.value.count + 1,
                                           limit: Self.pageSize)
+    }
+    
+    func getGifSize(at indexPath: IndexPath) -> CGSize {
+        let image = contentRelay.value[indexPath.row].image
+        return CGSize(width: Int(image.width) ?? 0, height: Int(image.height) ?? 0)
     }
 }

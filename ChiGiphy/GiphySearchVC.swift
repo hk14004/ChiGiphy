@@ -19,10 +19,9 @@ class GiphySearchVC: GenericSearchVC<GiphyItem> {
     
     private let viewModel: GiphySearchVM
     
-    var dataSource: RxCollectionViewSectionedAnimatedDataSource<GiphySection>?
+    var dataSource: RxCollectionViewSectionedAnimatedDataSource<GiphySection>!
     
-    private let gifCollectionView = UICollectionView(frame: CGRect(),
-                                                     collectionViewLayout: createLayout())
+    private var gifCollectionView: UICollectionView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -47,13 +46,9 @@ class GiphySearchVC: GenericSearchVC<GiphyItem> {
     }
     
     private func bindToViewModel() {
-        if let dataSource = dataSource {
             viewModel.sectionData.drive(
                 gifCollectionView.rx.items(dataSource: dataSource)).disposed(by: self.disposeBag
             )
-        } else {
-            fatalError("No data source")
-        }
         
         gifCollectionView.rx.willDisplayCell.map { $1 }
             .bind(to: viewModel.indexPathWillBeShown)
@@ -69,7 +64,7 @@ class GiphySearchVC: GenericSearchVC<GiphyItem> {
                 return cell
             })
         
-        dataSource?.configureSupplementaryView = {(dataSource, collectionView, kind, indexPath) in
+        dataSource.configureSupplementaryView = {(dataSource, collectionView, kind, indexPath) in
             switch kind {
             case UICollectionElementKindSectionFooter:
                 let footerLoadingView = collectionView.dequeueReusableSupplementaryView(ofKind: UICollectionElementKindSectionFooter,
@@ -91,35 +86,35 @@ class GiphySearchVC: GenericSearchVC<GiphyItem> {
                                    forCellWithReuseIdentifier: GiphyCollectionViewCell.reuseIdentifier)
     }
     
+    private func setupCollectionViewLayout() {
+        let layout = CHTCollectionViewWaterfallLayout()
+        gifCollectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        layout.delegate = self
+        layout.minimumColumnSpacing = 3.0
+        layout.minimumInteritemSpacing = 3.0
+        gifCollectionView.collectionViewLayout = layout
+    }
+    
     private func setupCollectionView() {
+        setupCollectionViewLayout()
         registerCollectionViewCells()
+        configureDataSource()
         gifCollectionView.backgroundColor = UIColor.PrimaryBackground
         view.addSubview(gifCollectionView)
         constrain(gifCollectionView, view) { $0.edges == $1.edges }
-        configureDataSource()
     }
-        
-    //TODO: Improve layout with aspect fit width and height
-    static private func createLayout() -> UICollectionViewLayout {
-        let gifSize: CGFloat = 1/2
-        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(gifSize), heightDimension: .fractionalWidth(gifSize))
-        let item = NSCollectionLayoutItem(layoutSize: itemSize)
-        item.contentInsets = NSDirectionalEdgeInsets(top: 1,
-                                                     leading: 1,
-                                                     bottom: 1,
-                                                     trailing: 1)
-        
-        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(1))
-        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
-        
-        let section = NSCollectionLayoutSection(group: group)
-        
-        let footerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
-        let footerItem = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: footerSize, elementKind: UICollectionElementKindSectionFooter, alignment: .bottom)
-        section.boundarySupplementaryItems = [footerItem]
-        
-        let layout = UICollectionViewCompositionalLayout(section: section)
-        
-        return layout
+}
+
+extension GiphySearchVC: CHTCollectionViewDelegateWaterfallLayout  {
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return viewModel.getGifSize(at: indexPath)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, columnCountFor section: Int) -> Int {
+        return viewModel.gifColumns
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, heightForFooterIn section: Int) -> CGFloat {
+        return 44
     }
 }

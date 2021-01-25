@@ -30,8 +30,7 @@ class GiphyCollectionViewCell: UICollectionViewCell {
     func setupViews() {
         contentView.backgroundColor = UIColor.PrimaryBackground
         activityIndicator.hidesWhenStopped = true
-        giphyImageView.contentMode = .scaleAspectFill
-        giphyImageView.clipsToBounds = true
+        giphyImageView.contentMode = .scaleAspectFit
     }
     
     func setupLayout() {
