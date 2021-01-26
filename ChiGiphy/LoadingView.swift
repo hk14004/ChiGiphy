@@ -13,7 +13,7 @@ import Cartography
 
 class LoadingView: UICollectionReusableView {
     
-    private let disposeBag = DisposeBag()
+    private var disposeBag = DisposeBag()
     
     private lazy var activityIndicator = NVActivityIndicatorView(frame: bounds,
                                                                  type: .ballPulse,
@@ -46,8 +46,15 @@ class LoadingView: UICollectionReusableView {
         super.init(coder: aDecoder)
      }
     
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        disposeBag = DisposeBag()
+    }
+    
     func setup(with viewModel: GiphySearchVM) {
-        viewModel.isLoading.drive(onNext: { [weak self] isLoading in
+        viewModel.loadingObservable
+            .asDriver(onErrorJustReturn: true)
+            .drive(onNext: { [weak self] isLoading in
             self?.changeState(isHidden: !isLoading)
         }).disposed(by: disposeBag)
     }

@@ -10,5 +10,5 @@ import Foundation
 enum SearchError: Error {
     case underlyingError(Error)
     case notFound
-    case unkowned
+    case unknown
 }
