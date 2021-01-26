@@ -81,6 +81,67 @@
 			path = Pods;
 			sourceTree = "<group>";
 		};
+		D4428C7525C0AB5B0073F444 /* Layouts */ = {
+			isa = PBXGroup;
+			children = (
+				D4B0AED825BF59090030B6AB /* Waterfall.swift */,
+			);
+			path = Layouts;
+			sourceTree = "<group>";
+		};
+		D4428C7625C0AB7F0073F444 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				D452B65F25B849B60025B2A6 /* UIColor+Extensions.swift */,
+				D4A8B6C825AC9E32007B5F49 /* URLSession+Rx.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		D4428C7725C0ABAF0073F444 /* Navigation */ = {
+			isa = PBXGroup;
+			children = (
+				D443203E25ABC7CB000DA72F /* MainCoordinator.swift */,
+			);
+			path = Navigation;
+			sourceTree = "<group>";
+		};
+		D4428C7925C0AC4D0073F444 /* Scenes */ = {
+			isa = PBXGroup;
+			children = (
+				D4428C7A25C0AC830073F444 /* GiphySearch */,
+			);
+			path = Scenes;
+			sourceTree = "<group>";
+		};
+		D4428C7A25C0AC830073F444 /* GiphySearch */ = {
+			isa = PBXGroup;
+			children = (
+				D446C46D25A8855400098E58 /* GiphySearchVC.swift */,
+				D443202A25ABC578000DA72F /* GiphySearchVM.swift */,
+				D460300925ABD7780014A8B7 /* GiphyCollectionViewCell.swift */,
+				D44BC8E725B71ECE000F5D7A /* GiphyCollectionViewCellVM.swift */,
+				D4ECAD2E25B627A800E0839B /* LoadingView.swift */,
+			);
+			path = GiphySearch;
+			sourceTree = "<group>";
+		};
+		D4428C7B25C0AD020073F444 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				D4A8B6C525AC98B8007B5F49 /* GiphyService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		D4428C7C25C0AD1C0073F444 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				D443204425ABCED5000DA72F /* GiphyItem.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
 		D446C45D25A8855400098E58 = {
 			isa = PBXGroup;
 			children = (
@@ -104,21 +165,14 @@
 			children = (
 				D446C46925A8855400098E58 /* AppDelegate.swift */,
 				D446C46B25A8855400098E58 /* SceneDelegate.swift */,
-				D4A8B6C825AC9E32007B5F49 /* URLSession+Rx.swift */,
-				D446C46D25A8855400098E58 /* GiphySearchVC.swift */,
-				D443204425ABCED5000DA72F /* GiphyItem.swift */,
 				D446C47225A8855500098E58 /* Assets.xcassets */,
 				D446C47425A8855500098E58 /* LaunchScreen.storyboard */,
-				D443202A25ABC578000DA72F /* GiphySearchVM.swift */,
 				D446C47725A8855500098E58 /* Info.plist */,
-				D4ECAD2E25B627A800E0839B /* LoadingView.swift */,
-				D460300925ABD7780014A8B7 /* GiphyCollectionViewCell.swift */,
-				D44BC8E725B71ECE000F5D7A /* GiphyCollectionViewCellVM.swift */,
-				D443203E25ABC7CB000DA72F /* MainCoordinator.swift */,
-				D4A8B6C525AC98B8007B5F49 /* GiphyService.swift */,
+				D4428C7C25C0AD1C0073F444 /* Models */,
+				D4428C7B25C0AD020073F444 /* Services */,
+				D4428C7925C0AC4D0073F444 /* Scenes */,
+				D4428C7725C0ABAF0073F444 /* Navigation */,
 				D4D4670425ACF16900BCFE44 /* Helpers */,
-				D452B65F25B849B60025B2A6 /* UIColor+Extensions.swift */,
-				D4B0AED825BF59090030B6AB /* Waterfall.swift */,
 			);
 			path = ChiGiphy;
 			sourceTree = "<group>";
@@ -126,10 +180,12 @@
 		D4D4670425ACF16900BCFE44 /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
+				D4428C7625C0AB7F0073F444 /* Extensions */,
+				D4428C7525C0AB5B0073F444 /* Layouts */,
 				D4ECAD1325B5E6BC00E0839B /* GenericSearch */,
-				D4D4670625ACF16900BCFE44 /* ReusableViewProtocol.swift */,
 				D4D4670725ACF16900BCFE44 /* Storage */,
 				D4D4671325ACF16900BCFE44 /* CoordinatorProtocol.swift */,
+				D4D4670625ACF16900BCFE44 /* ReusableViewProtocol.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
