@@ -17,7 +17,7 @@ class GiphySearchVC: GenericSearchVC<GiphyItem> {
     
     private let disposeBag = DisposeBag()
     
-    private let viewModel: GiphySearchVM
+    private let viewModel: GiphySearchVMProtocol
     
     var dataSource: RxCollectionViewSectionedAnimatedDataSource<GiphySection>!
     
@@ -32,7 +32,7 @@ class GiphySearchVC: GenericSearchVC<GiphyItem> {
     
     // MARK: Init
     
-    required init(viewModel: GiphySearchVM) {
+    required init(viewModel: (GiphySearchVMProtocol & GenericSearchVM<GiphyItem>)) {
         self.viewModel = viewModel
         super.init(viewModel: viewModel)
     }

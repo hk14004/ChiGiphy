@@ -51,7 +51,7 @@ class LoadingView: UICollectionReusableView {
         disposeBag = DisposeBag()
     }
     
-    func setup(with viewModel: GiphySearchVM) {
+    func setup(with viewModel: GiphySearchVMProtocol) {
         viewModel.loadingObservable
             .asDriver(onErrorJustReturn: true)
             .drive(onNext: { [weak self] isLoading in

@@ -9,7 +9,7 @@ import UIKit
 import RxSwift
 import RxCocoa
 
-class GiphySearchVM: GenericSearchVM<GiphyItem> {
+class GiphySearchVM: GenericSearchVM<GiphyItem>, GiphySearchVMProtocol {
     
     // MARK: Constants
     
