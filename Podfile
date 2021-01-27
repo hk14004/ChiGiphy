@@ -13,7 +13,8 @@ target 'ChiGiphy' do
   pod 'Gifu'
   pod 'Cartography', '~> 3.0'
   pod 'NVActivityIndicatorView'
-
+  pod 'SCLAlertView'
+  
   post_install do |installer|
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |config|

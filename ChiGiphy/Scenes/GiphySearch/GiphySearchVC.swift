@@ -10,6 +10,7 @@ import RxDataSources
 import RxSwift
 import RxCocoa
 import Cartography
+import SCLAlertView
 
 typealias GiphySection = AnimatableSectionModel<String, GiphyItem>
 
@@ -53,6 +54,21 @@ class GiphySearchVC: GenericSearchVC<GiphyItem> {
         gifCollectionView.rx.willDisplayCell.map { $1 }
             .bind(to: viewModel.indexPathWillBeShown)
             .disposed(by: self.disposeBag)
+        
+        viewModel.errorDriver.asObservable().subscribe(onNext: { error in
+            guard let error = error else {  return}
+            switch error {
+            case .underlyingError(let error):
+                SCLAlertView().showError(NSLocalizedString("Error occured", comment: ""),
+                                         subTitle: error.localizedDescription)
+            case .notFound:
+                SCLAlertView().showWarning(NSLocalizedString("No results found", comment: ""),
+                                           subTitle: NSLocalizedString("Try to search for something else", comment: ""))
+            case .unknown:
+                SCLAlertView().showError(NSLocalizedString("Unknown error occured", comment: ""),
+                                         subTitle: "")
+            }
+        }).disposed(by: disposeBag)
     }
     
     private func configureDataSource() {
