@@ -15,5 +15,6 @@ protocol GiphySearchVMProtocol {
     var indexPathWillBeShown: AnyObserver<IndexPath> { get }
     var gifColumns: Int { get }
     var loadingObservable: Observable<Bool> { get }
+    var errorDriver: Driver<SearchError?> { get }
     func getGifSize(at indexPath: IndexPath) -> CGSize
 }

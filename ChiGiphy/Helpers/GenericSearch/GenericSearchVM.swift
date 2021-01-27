@@ -9,7 +9,7 @@ import Foundation
 import RxSwift
 import RxCocoa
 
-class GenericSearchVM<T> {
+class GenericSearchVM<T: Hashable> {
     
     // MARK: Variables
     
@@ -38,11 +38,12 @@ class GenericSearchVM<T> {
     
     private let bag = DisposeBag()
     
+    private var nextPageRequestDisposable: Disposable? = nil
+    
     // MARK: Init
     
     init() {
         performSearchOnQueryChange()
-        fetchNextPageOnDemand()
     }
     
     // MARK: Methods
@@ -53,6 +54,7 @@ class GenericSearchVM<T> {
             .filter { !$0.isEmpty }
             .distinctUntilChanged()
             .debounce(0.5, scheduler: MainScheduler.instance)
+            .observeOn(SerialDispatchQueueScheduler(qos: .default))
             .flatMapLatest { [unowned self] term -> Observable<[T]> in
                 self.errorSubject.onNext(nil)
                 self.performingSearchRelay.accept(true)
@@ -65,7 +67,13 @@ class GenericSearchVM<T> {
                 }
             }
             .subscribe(onNext: { [unowned self] elements in
+                // Dispose of old next page requests
+                self.nextPageRequestDisposable?.dispose()
+                // Recreate fetch next page subscription
+                self.nextPageRequestDisposable = self.createFetchNextPageOnDemand()
+                // Make sure listeners know about fetch finished state
                 self.performingSearchRelay.accept(false)
+                // Process fetch result
                 if elements.isEmpty {
                     self.errorSubject.onNext(SearchError.notFound)
                 } else {
@@ -75,12 +83,12 @@ class GenericSearchVM<T> {
             .disposed(by: bag)
     }
     
-    private func fetchNextPageOnDemand() {
-        fetchNextPageRelay
+    private func createFetchNextPageOnDemand() -> Disposable {
+        return fetchNextPageRelay
             .asObservable()
             .distinctUntilChanged()
             .filter { $0 }
-            .flatMapLatest { [unowned self] bool -> Observable<[T]> in
+            .flatMapLatest { [unowned self] _ -> Observable<[T]> in
                 return self.getNextPage().retry()
                     .catchError { [unowned self] error -> Observable<[T]> in
                         self.errorSubject.onNext(SearchError.underlyingError(error))
@@ -90,10 +98,12 @@ class GenericSearchVM<T> {
             .subscribe(onNext: { [unowned self] nextPageBatch in
                 self.fetchNextPageRelay.accept(false)
                 if !nextPageBatch.isEmpty {
-                    self.contentRelay.accept(self.contentRelay.value + nextPageBatch)
+                    // Append only unique items
+                    let alreadyHaveSet = Set(self.contentRelay.value)
+                    let newUnique = nextPageBatch.filter { !alreadyHaveSet.contains($0) }
+                    self.contentRelay.accept(self.contentRelay.value + newUnique)
                 }
             })
-            .disposed(by: bag)
     }
 
     // MARK: Required subclass overrides

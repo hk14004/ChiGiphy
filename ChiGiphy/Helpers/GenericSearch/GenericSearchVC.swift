@@ -9,7 +9,7 @@ import UIKit
 import RxSwift
 import RxCocoa
 
-class GenericSearchVC<T>: UIViewController {
+class GenericSearchVC<T: Hashable>: UIViewController {
     
     // MARK: Variables
     

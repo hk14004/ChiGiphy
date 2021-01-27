@@ -31,7 +31,7 @@ struct GiphyItem: Decodable {
   }
 
   extension GiphyItem {
-    struct Image: Codable {
+    struct Image: Codable, Hashable {
       let height: String
       let width: String
       let url: URL
@@ -47,5 +47,11 @@ extension GiphyItem: IdentifiableType {
 extension GiphyItem: Equatable {
     static func == (lhs: GiphyItem, rhs: GiphyItem) -> Bool {
         lhs.id == rhs.id
+    }
+}
+
+extension GiphyItem: Hashable {
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
     }
 }
