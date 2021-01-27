@@ -49,6 +49,7 @@ class GiphySearchVM: GenericSearchVM<GiphyItem>, GiphySearchVMProtocol {
     
     override init() {
         super.init()
+        getNextPageBasedOnVisibleCell()
     }
     
     // MARK: Methods
