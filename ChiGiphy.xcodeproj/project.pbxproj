@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		3FE0DEEA3ED04D32E5A86704 /* Pods_ChiGiphy.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E0996226331C091A9B6177D3 /* Pods_ChiGiphy.framework */; };
+		83B3542EBB03E6D6508B9003 /* libPods-ChiGiphyTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 93EF8A8146C48EB3ECD24976 /* libPods-ChiGiphyTests.a */; };
 		D443202B25ABC578000DA72F /* GiphySearchVM.swift in Sources */ = {isa = PBXBuildFile; fileRef = D443202A25ABC578000DA72F /* GiphySearchVM.swift */; };
 		D443203F25ABC7CB000DA72F /* MainCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D443203E25ABC7CB000DA72F /* MainCoordinator.swift */; };
 		D443204525ABCED5000DA72F /* GiphyItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = D443204425ABCED5000DA72F /* GiphyItem.swift */; };
@@ -26,15 +27,28 @@
 		D4D4671525ACF16A00BCFE44 /* ReusableViewProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4D4670625ACF16900BCFE44 /* ReusableViewProtocol.swift */; };
 		D4D4671725ACF16A00BCFE44 /* Cache.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4D4670A25ACF16900BCFE44 /* Cache.swift */; };
 		D4D4671E25ACF16A00BCFE44 /* CoordinatorProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4D4671325ACF16900BCFE44 /* CoordinatorProtocol.swift */; };
+		D4DAD76925C3097300D22164 /* ChiGiphyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4DAD76825C3097300D22164 /* ChiGiphyTests.swift */; };
 		D4ECAD1525B5E71700E0839B /* GenericSearchVM.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4ECAD1425B5E71700E0839B /* GenericSearchVM.swift */; };
 		D4ECAD1825B5E72100E0839B /* GenericSearchVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4ECAD1725B5E72100E0839B /* GenericSearchVC.swift */; };
 		D4ECAD1B25B5EAE800E0839B /* SearchError.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4ECAD1A25B5EAE800E0839B /* SearchError.swift */; };
 		D4ECAD2F25B627A800E0839B /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4ECAD2E25B627A800E0839B /* LoadingView.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		D4DAD76B25C3097300D22164 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D446C45E25A8855400098E58 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D446C46525A8855400098E58;
+			remoteInfo = ChiGiphy;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		081298CFA0CA163BEAEF47CB /* Pods-ChiGiphy.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ChiGiphy.release.xcconfig"; path = "Target Support Files/Pods-ChiGiphy/Pods-ChiGiphy.release.xcconfig"; sourceTree = "<group>"; };
+		93EF8A8146C48EB3ECD24976 /* libPods-ChiGiphyTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ChiGiphyTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AD04AB70AE5F441E723BE181 /* Pods-ChiGiphy.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ChiGiphy.debug.xcconfig"; path = "Target Support Files/Pods-ChiGiphy/Pods-ChiGiphy.debug.xcconfig"; sourceTree = "<group>"; };
+		B6184FB60856725562166BF0 /* Pods-ChiGiphyTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ChiGiphyTests.release.xcconfig"; path = "Target Support Files/Pods-ChiGiphyTests/Pods-ChiGiphyTests.release.xcconfig"; sourceTree = "<group>"; };
 		D443202A25ABC578000DA72F /* GiphySearchVM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiphySearchVM.swift; sourceTree = "<group>"; };
 		D443203E25ABC7CB000DA72F /* MainCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainCoordinator.swift; sourceTree = "<group>"; };
 		D443204425ABCED5000DA72F /* GiphyItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiphyItem.swift; sourceTree = "<group>"; };
@@ -55,11 +69,15 @@
 		D4D4670625ACF16900BCFE44 /* ReusableViewProtocol.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReusableViewProtocol.swift; sourceTree = "<group>"; };
 		D4D4670A25ACF16900BCFE44 /* Cache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Cache.swift; sourceTree = "<group>"; };
 		D4D4671325ACF16900BCFE44 /* CoordinatorProtocol.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoordinatorProtocol.swift; sourceTree = "<group>"; };
+		D4DAD76625C3097300D22164 /* ChiGiphyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ChiGiphyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D4DAD76825C3097300D22164 /* ChiGiphyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChiGiphyTests.swift; sourceTree = "<group>"; };
+		D4DAD76A25C3097300D22164 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D4ECAD1425B5E71700E0839B /* GenericSearchVM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericSearchVM.swift; sourceTree = "<group>"; };
 		D4ECAD1725B5E72100E0839B /* GenericSearchVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericSearchVC.swift; sourceTree = "<group>"; };
 		D4ECAD1A25B5EAE800E0839B /* SearchError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchError.swift; sourceTree = "<group>"; };
 		D4ECAD2E25B627A800E0839B /* LoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingView.swift; sourceTree = "<group>"; };
 		E0996226331C091A9B6177D3 /* Pods_ChiGiphy.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ChiGiphy.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		F85627277CB62AE30AF6AFF3 /* Pods-ChiGiphyTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ChiGiphyTests.debug.xcconfig"; path = "Target Support Files/Pods-ChiGiphyTests/Pods-ChiGiphyTests.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,6 +89,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D4DAD76325C3097300D22164 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				83B3542EBB03E6D6508B9003 /* libPods-ChiGiphyTests.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -79,6 +105,8 @@
 			children = (
 				AD04AB70AE5F441E723BE181 /* Pods-ChiGiphy.debug.xcconfig */,
 				081298CFA0CA163BEAEF47CB /* Pods-ChiGiphy.release.xcconfig */,
+				F85627277CB62AE30AF6AFF3 /* Pods-ChiGiphyTests.debug.xcconfig */,
+				B6184FB60856725562166BF0 /* Pods-ChiGiphyTests.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -157,6 +185,7 @@
 			isa = PBXGroup;
 			children = (
 				D446C46825A8855400098E58 /* ChiGiphy */,
+				D4DAD76725C3097300D22164 /* ChiGiphyTests */,
 				D446C46725A8855400098E58 /* Products */,
 				86F8A66AE3BD51107608CDE7 /* Pods */,
 				EC090054F553AE94B5CD506E /* Frameworks */,
@@ -167,6 +196,7 @@
 			isa = PBXGroup;
 			children = (
 				D446C46625A8855400098E58 /* ChiGiphy.app */,
+				D4DAD76625C3097300D22164 /* ChiGiphyTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -217,6 +247,15 @@
 			path = Cache;
 			sourceTree = "<group>";
 		};
+		D4DAD76725C3097300D22164 /* ChiGiphyTests */ = {
+			isa = PBXGroup;
+			children = (
+				D4DAD76825C3097300D22164 /* ChiGiphyTests.swift */,
+				D4DAD76A25C3097300D22164 /* Info.plist */,
+			);
+			path = ChiGiphyTests;
+			sourceTree = "<group>";
+		};
 		D4ECAD1325B5E6BC00E0839B /* GenericSearch */ = {
 			isa = PBXGroup;
 			children = (
@@ -231,6 +270,7 @@
 			isa = PBXGroup;
 			children = (
 				E0996226331C091A9B6177D3 /* Pods_ChiGiphy.framework */,
+				93EF8A8146C48EB3ECD24976 /* libPods-ChiGiphyTests.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -257,6 +297,25 @@
 			productReference = D446C46625A8855400098E58 /* ChiGiphy.app */;
 			productType = "com.apple.product-type.application";
 		};
+		D4DAD76525C3097300D22164 /* ChiGiphyTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D4DAD76F25C3097300D22164 /* Build configuration list for PBXNativeTarget "ChiGiphyTests" */;
+			buildPhases = (
+				A45B7E85FF551C9256792C07 /* [CP] Check Pods Manifest.lock */,
+				D4DAD76225C3097300D22164 /* Sources */,
+				D4DAD76325C3097300D22164 /* Frameworks */,
+				D4DAD76425C3097300D22164 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D4DAD76C25C3097300D22164 /* PBXTargetDependency */,
+			);
+			name = ChiGiphyTests;
+			productName = ChiGiphyTests;
+			productReference = D4DAD76625C3097300D22164 /* ChiGiphyTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -269,6 +328,10 @@
 					D446C46525A8855400098E58 = {
 						CreatedOnToolsVersion = 12.0.1;
 						LastSwiftMigration = 1200;
+					};
+					D4DAD76525C3097300D22164 = {
+						CreatedOnToolsVersion = 12.0.1;
+						TestTargetID = D446C46525A8855400098E58;
 					};
 				};
 			};
@@ -286,6 +349,7 @@
 			projectRoot = "";
 			targets = (
 				D446C46525A8855400098E58 /* ChiGiphy */,
+				D4DAD76525C3097300D22164 /* ChiGiphyTests */,
 			);
 		};
 /* End PBXProject section */
@@ -297,6 +361,13 @@
 			files = (
 				D446C47625A8855500098E58 /* LaunchScreen.storyboard in Resources */,
 				D446C47325A8855500098E58 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D4DAD76425C3097300D22164 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -319,6 +390,28 @@
 			);
 			outputPaths = (
 				"$(DERIVED_FILE_DIR)/Pods-ChiGiphy-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		A45B7E85FF551C9256792C07 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-ChiGiphyTests-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -372,7 +465,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D4DAD76225C3097300D22164 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D4DAD76925C3097300D22164 /* ChiGiphyTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D4DAD76C25C3097300D22164 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D446C46525A8855400098E58 /* ChiGiphy */;
+			targetProxy = D4DAD76B25C3097300D22164 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		D446C47425A8855500098E58 /* LaunchScreen.storyboard */ = {
@@ -542,6 +651,48 @@
 			};
 			name = Release;
 		};
+		D4DAD76D25C3097300D22164 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = F85627277CB62AE30AF6AFF3 /* Pods-ChiGiphyTests.debug.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = PA272Y5JK8;
+				INFOPLIST_FILE = ChiGiphyTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.hardijs.ChiGiphyTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ChiGiphy.app/ChiGiphy";
+			};
+			name = Debug;
+		};
+		D4DAD76E25C3097300D22164 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = B6184FB60856725562166BF0 /* Pods-ChiGiphyTests.release.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = PA272Y5JK8;
+				INFOPLIST_FILE = ChiGiphyTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.hardijs.ChiGiphyTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ChiGiphy.app/ChiGiphy";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -559,6 +710,15 @@
 			buildConfigurations = (
 				D446C47B25A8855500098E58 /* Debug */,
 				D446C47C25A8855500098E58 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D4DAD76F25C3097300D22164 /* Build configuration list for PBXNativeTarget "ChiGiphyTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D4DAD76D25C3097300D22164 /* Debug */,
+				D4DAD76E25C3097300D22164 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

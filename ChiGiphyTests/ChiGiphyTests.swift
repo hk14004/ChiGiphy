@@ -1,0 +1,159 @@
+//
+//  ChiGiphyTests.swift
+//  ChiGiphyTests
+//
+//  Created by Hardijs on 28/01/2021.
+//
+
+import XCTest
+import RxTest
+import RxBlocking
+import RxSwift
+import RxCocoa
+@testable import ChiGiphy
+
+protocol GiphyServiceProtocol {
+    func search(text: String, offset: Int, limit: Int) -> Single<[GiphyItem]>
+}
+
+class StubbedGiphyService: GiphyServiceProtocol {
+        
+    var stubbedResult: Single<[GiphyItem]>!
+    
+    func search(text: String = "", offset: Int = 0, limit: Int = 0) -> Single<[GiphyItem]> {
+        return stubbedResult
+    }
+}
+
+class GiphySearchVM {
+    
+    var state: Observable<GiphySearchState> {
+        Observable.merge(
+            .just(.initial(InitialGiphyCellVM())),
+            query
+                .filter { !$0.isEmpty }
+                .distinctUntilChanged()
+                .debounce(0.5, scheduler: SharingScheduler.make())
+                .flatMapLatest { [unowned self] term in
+                    giphyService.search(text: term, offset: 0, limit: 0).asObservable()
+                }.map { gifItems in
+                    .found(gifItems.map { GiphyCellVM(item: $0) })
+                }
+        )
+    }
+    
+    var query = BehaviorRelay<String>(value: "")
+    
+    private let giphyService: GiphyServiceProtocol
+    
+    init(giphyService: GiphyServiceProtocol = StubbedGiphyService()) {
+        self.giphyService = giphyService
+    }
+}
+
+class GiphyCellVM: Equatable {
+    
+    private let item: GiphyItem
+    
+    init(item: GiphyItem) {
+        self.item = item
+    }
+    
+    static func == (lhs: GiphyCellVM, rhs: GiphyCellVM) -> Bool {
+        lhs.item == rhs.item
+    }
+}
+
+class InitialGiphyCellVM: Equatable {
+    static func == (lhs: InitialGiphyCellVM, rhs: InitialGiphyCellVM) -> Bool {
+        true
+    }
+}
+
+class NotFoundGiphyCellVM: Equatable {
+    static func == (lhs: NotFoundGiphyCellVM, rhs: NotFoundGiphyCellVM) -> Bool {
+        true
+    }
+}
+
+enum GiphySearchState: Equatable {
+    case found([GiphyCellVM])
+    case notFound(NotFoundGiphyCellVM)
+    case initial(InitialGiphyCellVM)
+}
+
+class ChiGiphyTests: XCTestCase {
+
+    // MARK: Variables
+    
+    private var bag = DisposeBag()
+    
+    // MARK: XCTest
+    
+    override func tearDown() {
+        bag = DisposeBag()
+    }
+    
+    // MARK: Tests
+    
+    func test_initialState() {
+        let sut = GiphySearchVM()
+        let spy = GiphySearchStateSpy(observableState: sut.state)
+        
+        XCTAssertEqual(spy.state, [GiphySearchState.initial(InitialGiphyCellVM())])
+    }
+    
+    func test_foundState_afterInitialState_withMultipleItems() {
+        // Given
+        let scheduler = TestScheduler(initialClock: 0, resolution: 0.001)
+        
+        let stubbedService = StubbedGiphyService()
+        
+        let successResult: [GiphyItem] = [
+            .init(id: "id1", image: GiphyItem.Image(height: "", width: "", url: URL(string: "www.google.lv")!)),
+            .init(id: "id2", image: GiphyItem.Image(height: "", width: "", url: URL(string: "www.google.lv")!))
+        ]
+        
+        stubbedService.stubbedResult = Single<[GiphyItem]>.create { (observable) -> Disposable in
+            observable(.success(successResult))
+            return Disposables.create()
+        }
+        
+        let sut = GiphySearchVM(giphyService: stubbedService)
+        
+        SharingScheduler.mock(scheduler: scheduler) {
+            let observer = scheduler.createObserver(GiphySearchState.self)
+            sut.state.bind(to: observer).disposed(by: bag)
+            
+            // When
+            sut.query.accept("A query")
+            scheduler.start()
+            
+            // Then
+            XCTAssertEqual(observer.events, [
+                .next(0, .initial(InitialGiphyCellVM())),
+                .next(500, .found(successResult.map { GiphyCellVM(item: $0) }))
+            ])
+        }
+    }
+
+    func testPerformanceExample() throws {
+        // This is an example of a performance test case.
+        measure {
+            // Put the code you want to measure the time of here.
+        }
+    }
+    
+    fileprivate class GiphySearchStateSpy {
+        
+        private(set) var state: [GiphySearchState] = []
+        
+        private let bag = DisposeBag()
+        
+        init(observableState: Observable<GiphySearchState>) {
+            observableState.subscribe(onNext: { [weak self] state in
+                self?.state.append(state)
+            }).disposed(by: bag)
+        }
+    }
+}

@@ -12,6 +12,11 @@ struct GiphyItem: Decodable {
     let id: String
     let image: Image
 
+    public init(id: String, image: Image) {
+        self.id = id
+        self.image = image
+    }
+    
     public init(from decoder: Decoder) throws {
       let container = try decoder.container(keyedBy: CodingKeys.self)
       self.id = try container.decode(String.self, forKey: .id)

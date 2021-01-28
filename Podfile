@@ -23,3 +23,9 @@ target 'ChiGiphy' do
     end
   end
 end
+
+target 'ChiGiphyTests' do
+    pod 'RxBlocking', '4.5.0'
+    pod 'RxTest', '4.5.0'
+    pod 'RxCocoa', '~> 4'
+end
