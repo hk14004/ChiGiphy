@@ -17,7 +17,7 @@ struct GiphyItem: Decodable {
       self.id = try container.decode(String.self, forKey: .id)
 
       let images = try container.nestedContainer(keyedBy: ImageKeys.self, forKey: .images)
-      self.image = try images.decode(Image.self, forKey: .downsized)
+      self.image = try images.decode(Image.self, forKey: .preview_gif)
     }
 
     enum CodingKeys: String, CodingKey {
@@ -26,7 +26,7 @@ struct GiphyItem: Decodable {
     }
 
     enum ImageKeys: String, CodingKey {
-      case downsized = "downsized"
+      case preview_gif = "preview_gif"
     }
   }
 
