@@ -62,7 +62,8 @@ class TDDGiphySearchVM {
         indexPathWillBeShown
             .filter {
                 self.shouldLoadItems(indexPath: $0)
-            }.distinctUntilChanged()
+            }
+            .distinctUntilChanged()
             .flatMapLatest {[unowned self] _ -> Observable<GiphySearchState>  in
                 let fetch = giphyService.search(text: query.value, offset: fetchedItemVMs.value.count + 1, limit: self.pageSize).asObservable().materialize()
                 // RxSwift 6 compact map would be nicer

@@ -241,6 +241,60 @@ class ChiGiphyTests: XCTestCase {
             ])
         }
     }
+    
+    func test_loadingMore_whenAlreadyLoadingNextPage() {
+        // Given
+        let sut = makeSUT()
+        let queryResult: [GiphyItem] = GiphyItem.createMocks(count: sut.pageSize)
+        
+        let nextPageResult: [GiphyItem] = GiphyItem.createMocks(count: 2)
+        
+        stubbedService.stubbedResults.append(Single<[GiphyItem]>.create { (observable) -> Disposable in
+            observable(.success(queryResult))
+            return Disposables.create()
+        })
+        
+        stubbedService.stubbedResults.append(Single<[GiphyItem]>.create { (observable) -> Disposable in
+            //observable(.success(nextPageResult))
+            return Disposables.create()
+        })
+        
+        SharingScheduler.mock(scheduler: testScheduler) {
+            let observer = testScheduler.createObserver(GiphySearchState.self)
+            sut.state.bind(to: observer).disposed(by: bag)
+            
+            // When
+            /// Needs to fire querie in specific times
+            let searchDebounce = sut.getSearchDebounce()
+            let spoofUserInput = testScheduler.createHotObservable([
+                next(0, "Success query 1")
+            ])
+            spoofUserInput.bind(to: sut.query).disposed(by: bag)
+            
+            /// Spoofs user scrool after initial search
+            let userScrool = testScheduler.createHotObservable([
+                next(searchDebounce + 1, IndexPath(row: queryResult.count - 1, section: 0)),
+                next(searchDebounce + 2, IndexPath(row: queryResult.count - 1, section: 0))
+            ])
+
+            /// Listens for indexpath change
+            let indexPathObserver = testScheduler.createObserver(IndexPath.self)
+
+            /// Register bindings
+            userScrool.bind(to: sut.indexPathWillBeShown).disposed(by: bag)
+            sut.indexPathWillBeShown.bind(to: indexPathObserver).disposed(by: bag)
+            
+            // Then
+            testScheduler.start()
+            XCTAssertEqual(observer.events, [
+                .next(0, .initial(InitialGiphyCellVM())),
+                .next(searchDebounce, .searching(SearchingGiphyCellVM())),
+                .next(searchDebounce, .found(queryResult.map { GiphyCellVM(item: $0) })),
+                .next(searchDebounce + 1, .loadingMore(LoadingMoreVM())),
+            ])
+        }
+    }
+    
     private func makeSUT() -> TDDGiphySearchVM {
         return TDDGiphySearchVM(giphyService: stubbedService)
     }
