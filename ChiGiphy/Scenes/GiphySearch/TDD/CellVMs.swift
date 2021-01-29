@@ -58,3 +58,14 @@ class NotFoundGiphyCellVM: Equatable {
         true
     }
 }
+
+class LoadingMoreVM: Equatable {
+    
+    var identity: String {
+        "\(Self.self)"
+    }
+    
+    static func == (lhs: LoadingMoreVM, rhs: LoadingMoreVM) -> Bool {
+        true
+    }
+}
