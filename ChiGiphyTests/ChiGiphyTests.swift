@@ -25,6 +25,34 @@ class StubbedGiphyService: GiphyServiceProtocol {
     }
 }
 
+class GiphyCellVM: Equatable {
+    
+    private let item: GiphyItem
+    
+    init(item: GiphyItem) {
+        self.item = item
+    }
+    
+    static func == (lhs: GiphyCellVM, rhs: GiphyCellVM) -> Bool {
+        lhs.item == rhs.item
+    }
+}
+
+class InitialGiphyCellVM: Equatable {
+    static func == (lhs: InitialGiphyCellVM, rhs: InitialGiphyCellVM) -> Bool {
+        true
+    }
+}
+
+class NotFoundGiphyCellVM: Equatable {
+    static func == (lhs: NotFoundGiphyCellVM, rhs: NotFoundGiphyCellVM) -> Bool {
+        true
+    }
+}
+
+
+
+
 class GiphySearchVM {
     
     var state: Observable<GiphySearchState> {
@@ -70,10 +98,11 @@ class GiphySearchVM {
                         }
                     }).disposed(by: bag)
                 
+                    // TODO: Add error case
                     errors.subscribe(onNext: { error in
                         
                     }).disposed(by: bag)
-                    // TODO: Add error case?
+                    
                     return Disposables.create()
                 }
             }
@@ -81,30 +110,6 @@ class GiphySearchVM {
     }
 }
 
-class GiphyCellVM: Equatable {
-    
-    private let item: GiphyItem
-    
-    init(item: GiphyItem) {
-        self.item = item
-    }
-    
-    static func == (lhs: GiphyCellVM, rhs: GiphyCellVM) -> Bool {
-        lhs.item == rhs.item
-    }
-}
-
-class InitialGiphyCellVM: Equatable {
-    static func == (lhs: InitialGiphyCellVM, rhs: InitialGiphyCellVM) -> Bool {
-        true
-    }
-}
-
-class NotFoundGiphyCellVM: Equatable {
-    static func == (lhs: NotFoundGiphyCellVM, rhs: NotFoundGiphyCellVM) -> Bool {
-        true
-    }
-}
 
 enum GiphySearchState: Equatable {
     case found([GiphyCellVM])
@@ -197,13 +202,7 @@ class ChiGiphyTests: XCTestCase {
         
     }
 
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        measure {
-            // Put the code you want to measure the time of here.
-        }
-    }
-    
+
     fileprivate class GiphySearchStateSpy {
         
         private(set) var state: [GiphySearchState] = []
