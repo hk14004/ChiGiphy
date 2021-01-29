@@ -30,24 +30,54 @@ class GiphySearchVM {
     var state: Observable<GiphySearchState> {
         Observable.merge(
             .just(.initial(InitialGiphyCellVM())),
-            query
-                .filter { !$0.isEmpty }
-                .distinctUntilChanged()
-                .debounce(0.5, scheduler: SharingScheduler.make())
-                .flatMapLatest { [unowned self] term in
-                    giphyService.search(text: term, offset: 0, limit: 0).asObservable()
-                }.map { gifItems in
-                    .found(gifItems.map { GiphyCellVM(item: $0) })
-                }
+            search(with: query)
         )
     }
     
-    var query = BehaviorRelay<String>(value: "")
+    private(set) var query = BehaviorRelay<String>(value: "")
     
     private let giphyService: GiphyServiceProtocol
     
     init(giphyService: GiphyServiceProtocol = StubbedGiphyService()) {
         self.giphyService = giphyService
+    }
+    
+    var bag = DisposeBag()
+    
+    private func search(with query: BehaviorRelay<String>) -> Observable<GiphySearchState> {
+        query
+            .filter { !$0.isEmpty }
+            .distinctUntilChanged()
+            .debounce(0.5, scheduler: SharingScheduler.make())
+            .flatMapLatest { [unowned self] term -> Observable<GiphySearchState> in
+                let fetch = giphyService.search(text: term, offset: 0, limit: 0).asObservable().materialize()
+                let elements = fetch
+                            .map { $0.element }
+                            .filter { $0 != nil }
+                            .map { $0! }
+                
+                let errors = fetch
+                            .map { $0.error }
+                            .filter { $0 != nil }
+                            .map { $0! }
+                
+                return Observable<GiphySearchState>.create { (observer) -> Disposable in
+                    elements.subscribe(onNext: { fetched in
+                        if fetched.isEmpty {
+                            observer.onNext(.notFound(NotFoundGiphyCellVM()))
+                        } else {
+                            observer.onNext(.found(fetched.map { GiphyCellVM(item: $0)}))
+                        }
+                    }).disposed(by: bag)
+                
+                    errors.subscribe(onNext: { error in
+                        
+                    }).disposed(by: bag)
+                    // TODO: Add error case?
+                    return Disposables.create()
+                }
+            }
+        
     }
 }
 
@@ -88,8 +118,16 @@ class ChiGiphyTests: XCTestCase {
     
     private var bag = DisposeBag()
     
+    private var testScheduler: TestScheduler!
+    
+    private var stubbedService: StubbedGiphyService!
+    
     // MARK: XCTest
     
+    override func setUp() {
+        testScheduler = TestScheduler(initialClock: 0, resolution: 0.001)
+        stubbedService = StubbedGiphyService()
+    }
     override func tearDown() {
         bag = DisposeBag()
     }
@@ -105,10 +143,6 @@ class ChiGiphyTests: XCTestCase {
     
     func test_foundState_afterInitialState_withMultipleItems() {
         // Given
-        let scheduler = TestScheduler(initialClock: 0, resolution: 0.001)
-        
-        let stubbedService = StubbedGiphyService()
-        
         let successResult: [GiphyItem] = [
             .init(id: "id1", image: GiphyItem.Image(height: "", width: "", url: URL(string: "www.google.lv")!)),
             .init(id: "id2", image: GiphyItem.Image(height: "", width: "", url: URL(string: "www.google.lv")!))
@@ -121,20 +155,46 @@ class ChiGiphyTests: XCTestCase {
         
         let sut = GiphySearchVM(giphyService: stubbedService)
         
-        SharingScheduler.mock(scheduler: scheduler) {
-            let observer = scheduler.createObserver(GiphySearchState.self)
+        SharingScheduler.mock(scheduler: testScheduler) {
+            let observer = testScheduler.createObserver(GiphySearchState.self)
             sut.state.bind(to: observer).disposed(by: bag)
             
             // When
             sut.query.accept("A query")
-            scheduler.start()
             
             // Then
+            testScheduler.start()
             XCTAssertEqual(observer.events, [
                 .next(0, .initial(InitialGiphyCellVM())),
                 .next(500, .found(successResult.map { GiphyCellVM(item: $0) }))
             ])
         }
+    }
+    
+    func test_notFoundState_afterInitialState() {
+        // Given
+        stubbedService.stubbedResult = Single<[GiphyItem]>.create { (observable) -> Disposable in
+            observable(.success([]))
+            return Disposables.create()
+        }
+        
+        let sut = GiphySearchVM(giphyService: stubbedService)
+        
+        SharingScheduler.mock(scheduler: testScheduler) {
+            let observer = testScheduler.createObserver(GiphySearchState.self)
+            sut.state.bind(to: observer).disposed(by: bag)
+            
+            // When
+            sut.query.accept("A query")
+            
+            // Then
+            testScheduler.start()
+            XCTAssertEqual(observer.events, [
+                .next(0, .initial(InitialGiphyCellVM())),
+                .next(500, .notFound(NotFoundGiphyCellVM()))
+            ])
+        }
+        
     }
 
     func testPerformanceExample() throws {
