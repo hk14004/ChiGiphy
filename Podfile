@@ -15,6 +15,12 @@ target 'ChiGiphy' do
   pod 'NVActivityIndicatorView'
   pod 'SCLAlertView'
   
+  target 'ChiGiphyTests' do
+      inherit! :search_paths
+      pod 'RxBlocking', '4.5.0'
+      pod 'RxTest', '4.5.0'
+  end
+
   post_install do |installer|
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |config|
@@ -24,8 +30,3 @@ target 'ChiGiphy' do
   end
 end
 
-target 'ChiGiphyTests' do
-    pod 'RxBlocking', '4.5.0'
-    pod 'RxTest', '4.5.0'
-    pod 'RxCocoa', '~> 4'
-end

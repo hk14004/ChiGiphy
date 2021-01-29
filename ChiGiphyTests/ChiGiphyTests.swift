@@ -12,137 +12,6 @@ import RxSwift
 import RxCocoa
 @testable import ChiGiphy
 
-protocol GiphyServiceProtocol {
-    func search(text: String, offset: Int, limit: Int) -> Single<[GiphyItem]>
-}
-
-class StubbedGiphyService: GiphyServiceProtocol {
-        
-    var stubbedResult: Single<[GiphyItem]>!
-    
-    func search(text: String = "", offset: Int = 0, limit: Int = 0) -> Single<[GiphyItem]> {
-        return stubbedResult
-    }
-}
-
-class SearchingGiphyCellVM: Equatable, IdentifiableType {
-    
-    static func == (lhs: SearchingGiphyCellVM, rhs: SearchingGiphyCellVM) -> Bool {
-        true
-    }
-    
-    var identity: String {
-        "\(Self.self)"
-    }
-}
-
-class GiphyCellVM: Equatable, IdentifiableType {
-    
-    var identity: String {
-        item.id
-    }
-    
-    private let item: GiphyItem
-    
-    init(item: GiphyItem) {
-        self.item = item
-    }
-    
-    static func == (lhs: GiphyCellVM, rhs: GiphyCellVM) -> Bool {
-        lhs.item == rhs.item
-    }
-}
-
-class InitialGiphyCellVM: Equatable, IdentifiableType {
-    
-    var identity: String {
-        "\(Self.self)"
-    }
-    
-    static func == (lhs: InitialGiphyCellVM, rhs: InitialGiphyCellVM) -> Bool {
-        true
-    }
-}
-
-class NotFoundGiphyCellVM: Equatable {
-    
-    var identity: String {
-        "\(Self.self)"
-    }
-    
-    static func == (lhs: NotFoundGiphyCellVM, rhs: NotFoundGiphyCellVM) -> Bool {
-        true
-    }
-}
-
-
-
-
-class GiphySearchVM {
-    
-    var state: Observable<GiphySearchState> {
-        Observable.merge(
-            .just(.initial(InitialGiphyCellVM())),
-            search(with: query)
-        )
-    }
-    
-    private(set) var query = BehaviorRelay<String>(value: "")
-    
-    private let giphyService: GiphyServiceProtocol
-    
-    init(giphyService: GiphyServiceProtocol = StubbedGiphyService()) {
-        self.giphyService = giphyService
-    }
-    
-    var bag = DisposeBag()
-    
-    private func search(with query: BehaviorRelay<String>) -> Observable<GiphySearchState> {
-        query
-            .filter { !$0.isEmpty }
-            .distinctUntilChanged()
-            .debounce(0.5, scheduler: SharingScheduler.make())
-            .flatMapLatest { [unowned self] term -> Observable<GiphySearchState> in
-                let fetch = giphyService.search(text: term, offset: 0, limit: 0).asObservable().materialize()
-                // RxSwift 6 compact map would be nicer
-                let elements = fetch
-                            .map { $0.element }
-                            .filter { $0 != nil }
-                            .map { $0! }
-                
-                let errors = fetch
-                            .map { $0.error }
-                            .filter { $0 != nil }
-                            .map { $0! }
-                
-                return Observable<GiphySearchState>.create { (observer) -> Disposable in
-                    observer.onNext(.searching(SearchingGiphyCellVM()))
-                    elements.subscribe(onNext: { fetched in
-                        if fetched.isEmpty {
-                            observer.onNext(.notFound(NotFoundGiphyCellVM()))
-                        } else {
-                            observer.onNext(.found(fetched.map { GiphyCellVM(item: $0)}))
-                        }
-                    }).disposed(by: bag)
-                
-                    // TODO: Add error case
-                    errors.subscribe(onNext: { error in
-                        
-                    }).disposed(by: bag)
-                    
-                    return Disposables.create()
-                }
-            }
-    }
-}
-
-enum GiphySearchState: Equatable {
-    case found([GiphyCellVM])
-    case notFound(NotFoundGiphyCellVM)
-    case initial(InitialGiphyCellVM)
-    case searching(SearchingGiphyCellVM)
-}
-
 class ChiGiphyTests: XCTestCase {
 
     // MARK: Variables
@@ -166,7 +35,7 @@ class ChiGiphyTests: XCTestCase {
     // MARK: Tests
     
     func test_initialState() {
-        let sut = GiphySearchVM()
+        let sut = TDDGiphySearchVM()
         let spy = GiphySearchStateSpy(observableState: sut.state)
         
         XCTAssertEqual(spy.state, [GiphySearchState.initial(InitialGiphyCellVM())])
@@ -184,7 +53,7 @@ class ChiGiphyTests: XCTestCase {
             return Disposables.create()
         }
         
-        let sut = GiphySearchVM(giphyService: stubbedService)
+        let sut = TDDGiphySearchVM(giphyService: stubbedService)
         
         SharingScheduler.mock(scheduler: testScheduler) {
             let observer = testScheduler.createObserver(GiphySearchState.self)
@@ -210,7 +79,7 @@ class ChiGiphyTests: XCTestCase {
             return Disposables.create()
         }
         
-        let sut = GiphySearchVM(giphyService: stubbedService)
+        let sut = TDDGiphySearchVM(giphyService: stubbedService)
         
         SharingScheduler.mock(scheduler: testScheduler) {
             let observer = testScheduler.createObserver(GiphySearchState.self)
@@ -229,18 +98,34 @@ class ChiGiphyTests: XCTestCase {
         }
         
     }
+}
 
+// MARK: Helpers
 
-    fileprivate class GiphySearchStateSpy {
+class GiphySearchStateSpy {
+    
+    private(set) var state: [GiphySearchState] = []
+    
+    private let bag = DisposeBag()
+    
+    init(observableState: Observable<GiphySearchState>) {
+        observableState.subscribe(onNext: { [weak self] state in
+            self?.state.append(state)
+        }).disposed(by: bag)
+    }
+}
+
+extension TDDGiphySearchVM {
+    convenience init(stubbedGiphyService: GiphyServiceProtocol = StubbedGiphyService()) {
+        self.init(giphyService: stubbedGiphyService)
+    }
+}
+
+class StubbedGiphyService: GiphyServiceProtocol {
         
-        private(set) var state: [GiphySearchState] = []
-        
-        private let bag = DisposeBag()
-        
-        init(observableState: Observable<GiphySearchState>) {
-            observableState.subscribe(onNext: { [weak self] state in
-                self?.state.append(state)
-            }).disposed(by: bag)
-        }
+    var stubbedResult: Single<[GiphyItem]>!
+    
+    func search(text: String = "", offset: Int = 0, limit: Int = 0) -> Single<[GiphyItem]> {
+        return stubbedResult
     }
 }
