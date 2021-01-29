@@ -37,8 +37,7 @@ class ChiGiphyTests: XCTestCase {
     func test_initialState() {
         // Given
         let sut = makeSUT()
-        let observer = testScheduler.createObserver(GiphySearchState.self)
-        sut.state.bind(to: observer).disposed(by: bag)
+        let observer = registerStateListener(for: sut)
         
         // Then
         testScheduler.start()
@@ -49,24 +48,15 @@ class ChiGiphyTests: XCTestCase {
     
     func test_foundState_afterInitialState_withMultipleItems() {
         // Given
-        let successResult: [GiphyItem] = [
-            .init(id: "id1", image: GiphyItem.Image(height: "", width: "", url: URL(string: "www.google.lv")!)),
-            .init(id: "id2", image: GiphyItem.Image(height: "", width: "", url: URL(string: "www.google.lv")!))
-        ]
-        
-        stubbedService.stubbedResults.append(Single<[GiphyItem]>.create { (observable) -> Disposable in
-            observable(.success(successResult))
-            return Disposables.create()
-        })
-        
+        let successResult: [GiphyItem] = GiphyItem.createMocks(count: 2)
+        stubbedService.addSingleStub { $0(.success(successResult)) }
         let sut = makeSUT()
         
         SharingScheduler.mock(scheduler: testScheduler) {
-            let observer = testScheduler.createObserver(GiphySearchState.self)
-            sut.state.bind(to: observer).disposed(by: bag)
+            let observer = registerStateListener(for: sut)
             
             // When
-            sut.query.accept("A query")
+            let _ = spoofInput(for: sut.query, events: [next(0, "A query")])
             
             // Then
             testScheduler.start()
@@ -80,19 +70,14 @@ class ChiGiphyTests: XCTestCase {
     
     func test_notFoundState_afterInitialState() {
         // Given
-        stubbedService.stubbedResults.append(Single<[GiphyItem]>.create { (observable) -> Disposable in
-            observable(.success([]))
-            return Disposables.create()
-        })
-        
+        stubbedService.addSingleStub(onSubscribe: { $0(.success([])) })
         let sut = makeSUT()
         
         SharingScheduler.mock(scheduler: testScheduler) {
-            let observer = testScheduler.createObserver(GiphySearchState.self)
-            sut.state.bind(to: observer).disposed(by: bag)
+            let observer = registerStateListener(for: sut)
             
             // When
-            sut.query.accept("A query")
+            let _ = spoofInput(for: sut.query, events: [next(0, "A query")])
             
             // Then
             testScheduler.start()
@@ -111,18 +96,14 @@ class ChiGiphyTests: XCTestCase {
         let sut = makeSUT()
         
         /// Listens for search state
-        let stateObserver = testScheduler.createObserver(GiphySearchState.self)
-        sut.state.bind(to: stateObserver).disposed(by: bag)
+        let stateObserver = registerStateListener(for: sut)
         
         // When
         /// Spoofed will display indexpath after initial state
-        let userScrool = testScheduler.createHotObservable([next(100, indexPathWillBeShown)])
+        let _ = spoofInput(for: sut.indexPathWillBeShown, events: [next(100, indexPathWillBeShown)])
         
         /// Listens for indexpath change
         let indexPathObserver = testScheduler.createObserver(IndexPath.self)
-        
-        /// Register bindings
-        userScrool.bind(to: sut.indexPathWillBeShown).disposed(by: bag)
         sut.indexPathWillBeShown.bind(to: indexPathObserver).disposed(by: bag)
         
         // Then
@@ -141,44 +122,29 @@ class ChiGiphyTests: XCTestCase {
     
     func test_foundState_returnsSingle_afterFoundState() {
         // Given
-        let firstResult: [GiphyItem] = [
-            .init(id: "id1", image: GiphyItem.Image(height: "", width: "", url: URL(string: "www.google.lv")!)),
-            .init(id: "id2", image: GiphyItem.Image(height: "", width: "", url: URL(string: "www.google.lv")!))
-        ]
+        let firstResult: [GiphyItem] = GiphyItem.createMocks(count: 2)
         
-        let secondResult: [GiphyItem] = [
-            .init(id: "id3", image: GiphyItem.Image(height: "", width: "", url: URL(string: "www.google.lv")!))
-        ]
+        let secondResult: [GiphyItem] = GiphyItem.createMocks(count: 1)
         
-        stubbedService.stubbedResults.append(Single<[GiphyItem]>.create { (observable) -> Disposable in
-            observable(.success(firstResult))
-            return Disposables.create()
-        })
-        
-        stubbedService.stubbedResults.append(Single<[GiphyItem]>.create { (observable) -> Disposable in
-            observable(.success(secondResult))
-            return Disposables.create()
-        })
+        stubbedService.addSingleStub(onSubscribe: { $0(.success(firstResult)) })
+        stubbedService.addSingleStub(onSubscribe: { $0(.success(secondResult)) })
         
         let sut = makeSUT()
         
         SharingScheduler.mock(scheduler: testScheduler) {
-            let observer = testScheduler.createObserver(GiphySearchState.self)
-            sut.state.bind(to: observer).disposed(by: bag)
+            let stateObserver = registerStateListener(for: sut)
             
             // When
             /// Needs to fire querie in specific times
             let searchDebounce = sut.getSearchDebounce()
-            let spoofUserInput = testScheduler.createHotObservable([
+            let _ = spoofInput(for: sut.query, events: [
                 next(0, "Success query 1"),
                 next(searchDebounce + 1, "Success query 2")
             ])
-            spoofUserInput.bind(to: sut.query).disposed(by: bag)
-            
-            
+    
             // Then
             testScheduler.start()
-            XCTAssertEqual(observer.events, [
+            XCTAssertEqual(stateObserver.events, [
                 .next(0, .initial(InitialGiphyCellVM())),
                 .next(searchDebounce, .searching(SearchingGiphyCellVM())),
                 .next(searchDebounce, .found(firstResult.map { GiphyCellVM(item: $0) })),
@@ -192,44 +158,25 @@ class ChiGiphyTests: XCTestCase {
         // Given
         let sut = makeSUT()
         let queryResult: [GiphyItem] = GiphyItem.createMocks(count: sut.pageSize)
-        
         let nextPageResult: [GiphyItem] = GiphyItem.createMocks(count: 2)
         
-        stubbedService.stubbedResults.append(Single<[GiphyItem]>.create { (observable) -> Disposable in
-            observable(.success(queryResult))
-            return Disposables.create()
-        })
-        
-        stubbedService.stubbedResults.append(Single<[GiphyItem]>.create { (observable) -> Disposable in
-            observable(.success(nextPageResult))
-            return Disposables.create()
-        })
+        stubbedService.addSingleStub{ $0(.success(queryResult)) }
+        stubbedService.addSingleStub{ $0(.success(nextPageResult)) }
         
         SharingScheduler.mock(scheduler: testScheduler) {
-            let observer = testScheduler.createObserver(GiphySearchState.self)
-            sut.state.bind(to: observer).disposed(by: bag)
+            let stateObserver = registerStateListener(for: sut)
             
             // When
             /// Needs to fire querie in specific times
             let searchDebounce = sut.getSearchDebounce()
-            let spoofUserInput = testScheduler.createHotObservable([
-                next(0, "Success query 1")
-            ])
-            spoofUserInput.bind(to: sut.query).disposed(by: bag)
+            let _ = spoofInput(for: sut.query, events: [next(0, "Success query 1")])
             
             /// Spoofs user scrool after initial search
-            let userScrool = testScheduler.createHotObservable([next(searchDebounce + 1, IndexPath(row: queryResult.count - 1, section: 0))])
-
-            /// Listens for indexpath change
-            let indexPathObserver = testScheduler.createObserver(IndexPath.self)
-
-            /// Register bindings
-            userScrool.bind(to: sut.indexPathWillBeShown).disposed(by: bag)
-            sut.indexPathWillBeShown.bind(to: indexPathObserver).disposed(by: bag)
+            let _ = spoofInput(for: sut.indexPathWillBeShown, events: [next(searchDebounce + 1, IndexPath(row: queryResult.count - 1, section: 0))])
             
             // Then
             testScheduler.start()
-            XCTAssertEqual(observer.events, [
+            XCTAssertEqual(stateObserver.events, [
                 .next(0, .initial(InitialGiphyCellVM())),
                 .next(searchDebounce, .searching(SearchingGiphyCellVM())),
                 .next(searchDebounce, .found(queryResult.map { GiphyCellVM(item: $0) })),
@@ -247,42 +194,21 @@ class ChiGiphyTests: XCTestCase {
         let sut = makeSUT()
         let queryResult: [GiphyItem] = GiphyItem.createMocks(count: sut.pageSize)
         
-        let nextPageResult: [GiphyItem] = GiphyItem.createMocks(count: 2)
-        
-        stubbedService.stubbedResults.append(Single<[GiphyItem]>.create { (observable) -> Disposable in
-            observable(.success(queryResult))
-            return Disposables.create()
-        })
-        
-        stubbedService.stubbedResults.append(Single<[GiphyItem]>.create { (observable) -> Disposable in
-            //observable(.success(nextPageResult))
-            return Disposables.create()
-        })
+        stubbedService.addSingleStub { $0(.success(queryResult)) }
+        stubbedService.addSingleStub() // Hangs on purpose
         
         SharingScheduler.mock(scheduler: testScheduler) {
-            let observer = testScheduler.createObserver(GiphySearchState.self)
-            sut.state.bind(to: observer).disposed(by: bag)
+            let observer = registerStateListener(for: sut)
             
             // When
             /// Needs to fire querie in specific times
             let searchDebounce = sut.getSearchDebounce()
-            let spoofUserInput = testScheduler.createHotObservable([
-                next(0, "Success query 1")
-            ])
-            spoofUserInput.bind(to: sut.query).disposed(by: bag)
-            
+            let _ = spoofInput(for: sut.query, events: [next(0, "Success query 1")])
             /// Spoofs user scrool after initial search
-            let userScrool = testScheduler.createHotObservable([
+            let _ = spoofInput(for: sut.indexPathWillBeShown, events: [
                 next(searchDebounce + 1, IndexPath(row: queryResult.count - 1, section: 0)),
                 next(searchDebounce + 2, IndexPath(row: queryResult.count - 1, section: 0))
             ])
-
-            /// Listens for indexpath change
-            let indexPathObserver = testScheduler.createObserver(IndexPath.self)
-
-            /// Register bindings
-            userScrool.bind(to: sut.indexPathWillBeShown).disposed(by: bag)
-            sut.indexPathWillBeShown.bind(to: indexPathObserver).disposed(by: bag)
             
             // Then
             testScheduler.start()
@@ -295,12 +221,33 @@ class ChiGiphyTests: XCTestCase {
         }
     }
     
+    // MARK: Helpers
+    
     private func makeSUT() -> TDDGiphySearchVM {
         return TDDGiphySearchVM(giphyService: stubbedService)
     }
+    
+    func registerStateListener(for sut: TDDGiphySearchVM) -> TestableObserver<GiphySearchState> {
+        let observer = testScheduler.createObserver(GiphySearchState.self)
+        sut.state.bind(to: observer).disposed(by: bag)
+        return observer
+    }
+    
+    func spoofInput<T>(for observer: BehaviorRelay<T>, events: [Recorded<Event<T>>]) -> TestableObservable<T> {
+        let spoofUserInput = testScheduler.createHotObservable(events)
+        spoofUserInput.bind(to: observer).disposed(by: bag)
+        return spoofUserInput
+    }
+    
+    func spoofInput<T>(for observer: PublishRelay<T>, events: [Recorded<Event<T>>]) -> TestableObservable<T> {
+        let spoofUserInput = testScheduler.createHotObservable(events)
+        spoofUserInput.bind(to: observer).disposed(by: bag)
+        return spoofUserInput
+    }
 }
 
-// MARK: Helpers
+
+
 
 extension TDDGiphySearchVM {
     convenience init(stubbedGiphyService: GiphyServiceProtocol = StubbedGiphyService()) {
@@ -317,6 +264,14 @@ class StubbedGiphyService: GiphyServiceProtocol {
     
     func search(text: String = "", offset: Int = 0, limit: Int = 0) -> Single<[GiphyItem]> {
         return stubbedResults.removeFirst()
+    }
+    
+    func addSingleStub(onSubscribe: (((SingleEvent<Array<GiphyItem>>) -> ())->Void)? = nil) {
+        let single = Single<[GiphyItem]>.create { (observer) -> Disposable in
+            onSubscribe?(observer)
+            return Disposables.create()
+        }
+        stubbedResults.append(single)
     }
 }
 
