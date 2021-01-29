@@ -35,7 +35,7 @@ class ChiGiphyTests: XCTestCase {
     // MARK: Tests
     
     func test_initialState() {
-        let sut = TDDGiphySearchVM()
+        let sut = makeSUT()
         let spy = GiphySearchStateSpy(observableState: sut.state)
         
         XCTAssertEqual(spy.state, [GiphySearchState.initial(InitialGiphyCellVM())])
@@ -53,7 +53,7 @@ class ChiGiphyTests: XCTestCase {
             return Disposables.create()
         }
         
-        let sut = TDDGiphySearchVM(giphyService: stubbedService)
+        let sut = makeSUT()
         
         SharingScheduler.mock(scheduler: testScheduler) {
             let observer = testScheduler.createObserver(GiphySearchState.self)
@@ -79,7 +79,7 @@ class ChiGiphyTests: XCTestCase {
             return Disposables.create()
         }
         
-        let sut = TDDGiphySearchVM(giphyService: stubbedService)
+        let sut = makeSUT()
         
         SharingScheduler.mock(scheduler: testScheduler) {
             let observer = testScheduler.createObserver(GiphySearchState.self)
@@ -97,6 +97,10 @@ class ChiGiphyTests: XCTestCase {
             ])
         }
         
+    }
+    
+    private func makeSUT() -> TDDGiphySearchVM {
+        return TDDGiphySearchVM(giphyService: stubbedService)
     }
 }
 
