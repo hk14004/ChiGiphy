@@ -20,10 +20,10 @@ enum GiphySearchState: Equatable {
 class TDDGiphySearchVM {
     
     /// Gif page size
-    static private let pageSize = 20
+    let pageSize = 20
     
     /// Load new page when x elemnts left to display
-    static private let loadWhenItemsLeft = 10
+    let loadWhenItemsLeft = 0
     
     /// Query input interval
     let queryDebounce = 0.5
@@ -48,52 +48,55 @@ class TDDGiphySearchVM {
     
     var bag = DisposeBag()
     
-    private var fetchedItems = BehaviorRelay<[GiphyItem]>(value: [])
-    
     private var fetchedItemVMs = BehaviorRelay<[GiphyCellVM]>(value: [])
+    
+    func shouldLoadItems(indexPath: IndexPath) -> Bool {
+        if self.fetchedItemVMs.value.isEmpty {
+            return false
+        }
+        return self.fetchedItemVMs.value.count - (indexPath.row + 1)  <= self.loadWhenItemsLeft
+    }
     
     private func loadMore() -> Observable<GiphySearchState> {
         // TODO: Check state is found before requesting next page
         indexPathWillBeShown
             .filter {
-            if self.fetchedItems.value.isEmpty {
-                return false
-            }
-            return self.fetchedItems.value.count - $0.row <= 10
-        }.distinctUntilChanged()
-        .flatMapLatest {[unowned self] _ -> Observable<GiphySearchState>  in
-            let fetch = giphyService.search(text: query.value, offset: fetchedItemVMs.value.count + 1, limit: Self.pageSize).asObservable().materialize()
-            // RxSwift 6 compact map would be nicer
-            let elements = fetch
-                .map { $0.element }
-                .filter { $0 != nil }
-                .map { $0! }
-            
-            let errors = fetch
-                .map { $0.error }
-                .filter { $0 != nil }
-                .map { $0! }
-            
-            return Observable<GiphySearchState>.create { (observer) -> Disposable in
-                observer.onNext(.loadingMore(LoadingMoreVM()))
-                elements.subscribe(onNext: { fetched in
-                    if fetched.isEmpty {
-                        // TODO: Stuck in loading
-                        //observer.onNext(.found())
-                    } else {
-                        let results = fetched.map { GiphyCellVM(item: $0)}
-                        observer.onNext(.found(fetchedItemVMs.value + results))
-                    }
-                }).disposed(by: bag)
+                self.shouldLoadItems(indexPath: $0)
+            }.distinctUntilChanged()
+            .flatMapLatest {[unowned self] _ -> Observable<GiphySearchState>  in
+                let fetch = giphyService.search(text: query.value, offset: fetchedItemVMs.value.count + 1, limit: self.pageSize).asObservable().materialize()
+                // RxSwift 6 compact map would be nicer
+                let elements = fetch
+                    .map { $0.element }
+                    .filter { $0 != nil }
+                    .map { $0! }
                 
-                // TODO: Add error case
-                errors.subscribe(onNext: { error in
+                let errors = fetch
+                    .map { $0.error }
+                    .filter { $0 != nil }
+                    .map { $0! }
+                
+                return Observable<GiphySearchState>.create { (observer) -> Disposable in
+                    observer.onNext(.loadingMore(LoadingMoreVM()))
+                    elements.subscribe(onNext: { fetched in
+                        if fetched.isEmpty {
+                            // TODO: Stuck in loading
+                            //observer.onNext(.found())
+                        } else {
+                            let results = fetched.map { GiphyCellVM(item: $0)}
+                            fetchedItemVMs.accept(fetchedItemVMs.value + results)
+                            observer.onNext(.found(fetchedItemVMs.value))
+                        }
+                    }).disposed(by: bag)
                     
-                }).disposed(by: bag)
-                
-                return Disposables.create()
+                    // TODO: Add error case
+                    errors.subscribe(onNext: { error in
+                        
+                    }).disposed(by: bag)
+                    
+                    return Disposables.create()
+                }
             }
-        }
     }
     
     private func search(with query: BehaviorRelay<String>) -> Observable<GiphySearchState> {
@@ -102,7 +105,7 @@ class TDDGiphySearchVM {
             .distinctUntilChanged()
             .debounce(queryDebounce, scheduler: DriverSharingStrategy.scheduler)
             .flatMapLatest { [unowned self] term -> Observable<GiphySearchState> in
-                let fetch = giphyService.search(text: term, offset: fetchedItemVMs.value.count + 1, limit: Self.pageSize).asObservable().materialize()
+                let fetch = giphyService.search(text: term, offset: fetchedItemVMs.value.count + 1, limit: self.pageSize).asObservable().materialize()
                 // RxSwift 6 compact map would be nicer
                 let elements = fetch
                     .map { $0.element }
