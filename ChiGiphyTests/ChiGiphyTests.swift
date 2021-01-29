@@ -25,7 +25,22 @@ class StubbedGiphyService: GiphyServiceProtocol {
     }
 }
 
-class GiphyCellVM: Equatable {
+class SearchingGiphyCellVM: Equatable, IdentifiableType {
+    
+    static func == (lhs: SearchingGiphyCellVM, rhs: SearchingGiphyCellVM) -> Bool {
+        true
+    }
+    
+    var identity: String {
+        "\(Self.self)"
+    }
+}
+
+class GiphyCellVM: Equatable, IdentifiableType {
+    
+    var identity: String {
+        item.id
+    }
     
     private let item: GiphyItem
     
@@ -38,13 +53,23 @@ class GiphyCellVM: Equatable {
     }
 }
 
-class InitialGiphyCellVM: Equatable {
+class InitialGiphyCellVM: Equatable, IdentifiableType {
+    
+    var identity: String {
+        "\(Self.self)"
+    }
+    
     static func == (lhs: InitialGiphyCellVM, rhs: InitialGiphyCellVM) -> Bool {
         true
     }
 }
 
 class NotFoundGiphyCellVM: Equatable {
+    
+    var identity: String {
+        "\(Self.self)"
+    }
+    
     static func == (lhs: NotFoundGiphyCellVM, rhs: NotFoundGiphyCellVM) -> Bool {
         true
     }
@@ -79,6 +104,7 @@ class GiphySearchVM {
             .debounce(0.5, scheduler: SharingScheduler.make())
             .flatMapLatest { [unowned self] term -> Observable<GiphySearchState> in
                 let fetch = giphyService.search(text: term, offset: 0, limit: 0).asObservable().materialize()
+                // RxSwift 6 compact map would be nicer
                 let elements = fetch
                             .map { $0.element }
                             .filter { $0 != nil }
@@ -90,6 +116,7 @@ class GiphySearchVM {
                             .map { $0! }
                 
                 return Observable<GiphySearchState>.create { (observer) -> Disposable in
+                    observer.onNext(.searching(SearchingGiphyCellVM()))
                     elements.subscribe(onNext: { fetched in
                         if fetched.isEmpty {
                             observer.onNext(.notFound(NotFoundGiphyCellVM()))
@@ -106,15 +133,14 @@ class GiphySearchVM {
                     return Disposables.create()
                 }
             }
-        
     }
 }
-
 
 enum GiphySearchState: Equatable {
     case found([GiphyCellVM])
     case notFound(NotFoundGiphyCellVM)
     case initial(InitialGiphyCellVM)
+    case searching(SearchingGiphyCellVM)
 }
 
 class ChiGiphyTests: XCTestCase {
@@ -171,6 +197,7 @@ class ChiGiphyTests: XCTestCase {
             testScheduler.start()
             XCTAssertEqual(observer.events, [
                 .next(0, .initial(InitialGiphyCellVM())),
+                .next(500, .searching(SearchingGiphyCellVM())),
                 .next(500, .found(successResult.map { GiphyCellVM(item: $0) }))
             ])
         }
@@ -196,6 +223,7 @@ class ChiGiphyTests: XCTestCase {
             testScheduler.start()
             XCTAssertEqual(observer.events, [
                 .next(0, .initial(InitialGiphyCellVM())),
+                .next(500, .searching(SearchingGiphyCellVM())),
                 .next(500, .notFound(NotFoundGiphyCellVM()))
             ])
         }
