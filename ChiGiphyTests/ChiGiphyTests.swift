@@ -189,6 +189,73 @@ class ChiGiphyTests: XCTestCase {
         }
     }
     
+    func test_loadingMore_scrollingToBottomMultipleTimes() {
+        let n = 3 // Load more times
+        // Given
+        let sut = makeSUT()
+        let queryResult: [GiphyItem] = GiphyItem.createMocks(count: sut.pageSize)
+        stubbedService.addSingleStub{ $0(.success(queryResult)) }
+        var nextPageResults: [[GiphyItem]] = []
+        for _ in 1...n {
+            let generated = GiphyItem.createMocks(count: sut.pageSize)
+            nextPageResults.append(generated)
+            stubbedService.addSingleStub { $0(.success(generated)) }
+        }
+        
+        SharingScheduler.mock(scheduler: testScheduler) {
+            let stateObserver = registerStateListener(for: sut)
+
+            // When
+            /// Needs to fire query in specific time
+            let searchDebounce = sut.getSearchDebounce()
+            let _ = spoofInput(for: sut.query, events: [next(0, "Success query 1")])
+            
+            /// Spoofs user scrool after initial search n times
+            var userScroolEvents: [Recorded<Event<IndexPath>>] = []
+            for i in 1...n {
+                userScroolEvents.append(next(searchDebounce + 1 * i, IndexPath(row: sut.pageSize * i - 1, section: 0)))
+            }
+            
+            let _ = spoofInput(for: sut.indexPathWillBeShown, events: userScroolEvents)
+            
+            // Then
+            testScheduler.start()
+            
+            let initialfetchEvents: [Recorded<Event<GiphySearchState>>] = [
+                .next(0, .initial(InitialGiphyCellVM())),
+                .next(searchDebounce, .searching(SearchingGiphyCellVM())),
+                .next(searchDebounce, .found(queryResult.map { GiphyCellVM(item: $0) }))
+            ]
+            
+            // TODO: Use n variable
+            let expectedNewPageEvents: [Recorded<Event<GiphySearchState>>] = [
+                .next(searchDebounce + 1, .loadingMore(LoadingMoreVM())),
+                .next(searchDebounce + 1, .found(
+                        queryResult.map { GiphyCellVM(item: $0) } +
+                        nextPageResults[0].map { GiphyCellVM(item: $0) }
+                )),
+                .next(searchDebounce + 2, .loadingMore(LoadingMoreVM())),
+                .next(searchDebounce + 2, .found(
+                        queryResult.map { GiphyCellVM(item: $0) } +
+                        nextPageResults[0].map { GiphyCellVM(item: $0) } +
+                        nextPageResults[1].map { GiphyCellVM(item: $0) }
+                )),
+                .next(searchDebounce + 3, .loadingMore(LoadingMoreVM())),
+                .next(searchDebounce + 3, .found(
+                        queryResult.map { GiphyCellVM(item: $0) } +
+                        nextPageResults[0].map { GiphyCellVM(item: $0) } +
+                        nextPageResults[1].map { GiphyCellVM(item: $0) } +
+                        nextPageResults[2].map { GiphyCellVM(item: $0) }
+                ))
+            ]
+            
+            XCTAssertEqual(stateObserver.events, initialfetchEvents + expectedNewPageEvents)
+        }
+        
+        
+        
+    }
+    
     func test_loadingMore_whenAlreadyLoadingNextPage() {
         // Given
         let sut = makeSUT()
