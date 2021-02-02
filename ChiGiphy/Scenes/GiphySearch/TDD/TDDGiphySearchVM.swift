@@ -60,28 +60,18 @@ class TDDGiphySearchVM {
     private(set) var loadMoreDisposables = DisposeBag()
     
     private func loadMore() -> Observable<GiphySearchState> {
-        // TODO: Check state is found before requesting next page
         indexPathWillBeShown
             .filter {
                 self.shouldLoadItems(indexPath: $0)
             }
             .distinctUntilChanged()
             .flatMapLatest {[unowned self] _ -> Observable<GiphySearchState>  in
-                let fetch = giphyService.search(text: query.value, offset: fetchedItemVMs.value.count + 1, limit: self.pageSize).asObservable().materialize().share()
-                // RxSwift 6 compact map would be nicer
-                let elements = fetch
-                    .map { $0.element }
-                    .filter { $0 != nil }
-                    .map { $0! }
-                
-                let errors = fetch
-                    .map { $0.error }
-                    .filter { $0 != nil }
-                    .map { $0! }
+                let fetchRequest = giphyService.search(text: query.value, offset: fetchedItemVMs.value.count + 1, limit: self.pageSize).asObservable().share()
+                let materializedFetchRequest = MaterializedObservable(observable: fetchRequest)
                 
                 return Observable<GiphySearchState>.create { (observer) -> Disposable in
                     observer.onNext(.loadingMore(LoadingMoreVM()))
-                    elements.subscribe(onNext: { fetched in
+                    materializedFetchRequest.elements.subscribe(onNext: { fetched in
                         if fetched.isEmpty {
                             // TODO: Stuck in loading
                             //observer.onNext(.found())
@@ -93,8 +83,8 @@ class TDDGiphySearchVM {
                     }).disposed(by: loadMoreDisposables)
                     
                     // TODO: Add error case
-                    errors.subscribe(onNext: { error in
-                        
+                    materializedFetchRequest.errors.subscribe(onNext: { error in
+                        print("Next page error:", error.localizedDescription)
                     }).disposed(by: loadMoreDisposables)
                     
                     return Disposables.create()
@@ -111,21 +101,12 @@ class TDDGiphySearchVM {
                 // Dispose of loadMore
                 loadMoreDisposables = DisposeBag()
                 // Perform query
-                let fetch = giphyService.search(text: term, offset: 0, limit: self.pageSize).asObservable().materialize()
-                // RxSwift 6 compact map would be nicer
-                let elements = fetch
-                    .map { $0.element }
-                    .filter { $0 != nil }
-                    .map { $0! }
-                
-                let errors = fetch
-                    .map { $0.error }
-                    .filter { $0 != nil }
-                    .map { $0! }
+                let fetchRequest = giphyService.search(text: term, offset: 0, limit: self.pageSize).asObservable().share()
+                let materializedFetchRequest = MaterializedObservable(observable: fetchRequest)
                 
                 return Observable<GiphySearchState>.create { (observer) -> Disposable in
                     observer.onNext(.searching(SearchingGiphyCellVM()))
-                    elements.subscribe(onNext: { fetched in
+                    materializedFetchRequest.elements.subscribe(onNext: { fetched in
                         if fetched.isEmpty {
                             observer.onNext(.notFound(NotFoundGiphyCellVM()))
                         } else {
@@ -136,12 +117,33 @@ class TDDGiphySearchVM {
                     }).disposed(by: bag)
                     
                     // TODO: Add error case
-                    errors.subscribe(onNext: { error in
-                        
+                    materializedFetchRequest.errors.subscribe(onNext: { error in
+                        print("Search error:", error.localizedDescription)
                     }).disposed(by: bag)
                     
                     return Disposables.create()
                 }
             }
+    }
+}
+
+class MaterializedObservable<T> {
+    
+    let elements: Observable<T>
+    
+    let errors: Observable<Error>
+    
+    init(observable: Observable<T>) {
+        let materialized = observable.materialize()
+        
+        self.elements = materialized
+            .map { $0.element }
+            .filter { $0 != nil }
+            .map { $0! }
+        
+        self.errors = materialized
+            .map { $0.error }
+            .filter { $0 != nil }
+            .map { $0! }
     }
 }
