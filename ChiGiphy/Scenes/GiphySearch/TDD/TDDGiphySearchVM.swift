@@ -57,6 +57,8 @@ class TDDGiphySearchVM {
         return self.fetchedItemVMs.value.count - (indexPath.row + 1)  <= self.loadWhenItemsLeft
     }
     
+    private(set) var loadMoreDisposables = DisposeBag()
+    
     private func loadMore() -> Observable<GiphySearchState> {
         // TODO: Check state is found before requesting next page
         indexPathWillBeShown
@@ -65,7 +67,7 @@ class TDDGiphySearchVM {
             }
             .distinctUntilChanged()
             .flatMapLatest {[unowned self] _ -> Observable<GiphySearchState>  in
-                let fetch = giphyService.search(text: query.value, offset: fetchedItemVMs.value.count + 1, limit: self.pageSize).asObservable().materialize()
+                let fetch = giphyService.search(text: query.value, offset: fetchedItemVMs.value.count + 1, limit: self.pageSize).asObservable().materialize().share()
                 // RxSwift 6 compact map would be nicer
                 let elements = fetch
                     .map { $0.element }
@@ -88,12 +90,12 @@ class TDDGiphySearchVM {
                             fetchedItemVMs.accept(fetchedItemVMs.value + results)
                             observer.onNext(.found(fetchedItemVMs.value))
                         }
-                    }).disposed(by: bag)
+                    }).disposed(by: loadMoreDisposables)
                     
                     // TODO: Add error case
                     errors.subscribe(onNext: { error in
                         
-                    }).disposed(by: bag)
+                    }).disposed(by: loadMoreDisposables)
                     
                     return Disposables.create()
                 }
@@ -106,6 +108,9 @@ class TDDGiphySearchVM {
             .distinctUntilChanged()
             .debounce(queryDebounce, scheduler: DriverSharingStrategy.scheduler)
             .flatMapLatest { [unowned self] term -> Observable<GiphySearchState> in
+                // Dispose of loadMore
+                loadMoreDisposables = DisposeBag()
+                // Perform query
                 let fetch = giphyService.search(text: term, offset: fetchedItemVMs.value.count + 1, limit: self.pageSize).asObservable().materialize()
                 // RxSwift 6 compact map would be nicer
                 let elements = fetch

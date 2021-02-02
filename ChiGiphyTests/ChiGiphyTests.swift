@@ -135,7 +135,7 @@ class ChiGiphyTests: XCTestCase {
             let stateObserver = registerStateListener(for: sut)
             
             // When
-            /// Needs to fire querie in specific times
+            /// Needs to fire query in specific times
             let searchDebounce = sut.getSearchDebounce()
             let _ = spoofInput(for: sut.query, events: [
                 next(0, "Success query 1"),
@@ -167,7 +167,7 @@ class ChiGiphyTests: XCTestCase {
             let stateObserver = registerStateListener(for: sut)
             
             // When
-            /// Needs to fire querie in specific times
+            /// Needs to fire query in specific times
             let searchDebounce = sut.getSearchDebounce()
             let _ = spoofInput(for: sut.query, events: [next(0, "Success query 1")])
             
@@ -268,7 +268,7 @@ class ChiGiphyTests: XCTestCase {
             let observer = registerStateListener(for: sut)
             
             // When
-            /// Needs to fire querie in specific times
+            /// Needs to fire query in specific times
             let searchDebounce = sut.getSearchDebounce()
             let _ = spoofInput(for: sut.query, events: [next(0, "Success query 1")])
             /// Spoofs user scrool after initial search
@@ -285,6 +285,54 @@ class ChiGiphyTests: XCTestCase {
                 .next(searchDebounce, .found(queryResult.map { GiphyCellVM(item: $0) })),
                 .next(searchDebounce + 1, .loadingMore(LoadingMoreVM())),
             ])
+        }
+    }
+    
+    func test_loadingMore_isDisposed_whenPerformingQuery() {
+        // Given
+        let sut = makeSUT()
+        let loadMoreDisposedExpectation = expectation(description: "Expectation for load more request to be canceled")
+        let queryResult: [GiphyItem] = GiphyItem.createMocks(count: sut.pageSize)
+        
+        stubbedService.addSingleStub { $0(.success(queryResult)) }
+        stubbedService.stubbedResults.append(Single<[GiphyItem]>.create(subscribe: { observer -> Disposable in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                XCTAssertEqual(loadMoreDisposedExpectation.expectedFulfillmentCount, 1)
+            }
+            return Disposables.create {
+                loadMoreDisposedExpectation.fulfill()
+            }
+        }))
+
+        stubbedService.addSingleStub { $0(.success(queryResult)) }
+        
+        SharingScheduler.mock(scheduler: testScheduler) {
+            let observer = registerStateListener(for: sut)
+            
+            // When
+            /// Needs to fire query in specific times
+            let searchDebounce = sut.getSearchDebounce()
+            let _ = spoofInput(for: sut.query, events: [
+                next(0, "Success query 1"),
+                next(searchDebounce + 2, "Success query 2")
+            ])
+            /// Spoofs user scrool after initial search
+            let _ = spoofInput(for: sut.indexPathWillBeShown, events: [
+                next(searchDebounce + 1, IndexPath(row: queryResult.count - 1, section: 0))
+            ])
+            
+            // Then
+            testScheduler.start()
+            XCTAssertEqual(observer.events, [
+                .next(0, .initial(InitialGiphyCellVM())),
+                .next(searchDebounce, .searching(SearchingGiphyCellVM())),
+                .next(searchDebounce, .found(queryResult.map { GiphyCellVM(item: $0) })),
+                .next(searchDebounce + 1, .loadingMore(LoadingMoreVM())),
+                .next(searchDebounce * 2 + 2, .searching(SearchingGiphyCellVM())),
+                .next(searchDebounce * 2 + 2, .found(queryResult.map { GiphyCellVM(item: $0) }))
+            ])
+            
+            waitForExpectations(timeout: 3)
         }
     }
     
