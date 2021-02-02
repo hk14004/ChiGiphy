@@ -51,10 +51,10 @@ class TDDGiphySearchVM {
     private var fetchedItemVMs = BehaviorRelay<[GiphyCellVM]>(value: [])
     
     func shouldLoadItems(indexPath: IndexPath) -> Bool {
-        if self.fetchedItemVMs.value.isEmpty {
+        if fetchedItemVMs.value.isEmpty {
             return false
         }
-        return self.fetchedItemVMs.value.count - (indexPath.row + 1)  <= self.loadWhenItemsLeft
+        return fetchedItemVMs.value.count - (indexPath.row + 1)  <= loadWhenItemsLeft
     }
     
     private(set) var loadMoreDisposables = DisposeBag()
@@ -111,7 +111,7 @@ class TDDGiphySearchVM {
                 // Dispose of loadMore
                 loadMoreDisposables = DisposeBag()
                 // Perform query
-                let fetch = giphyService.search(text: term, offset: fetchedItemVMs.value.count + 1, limit: self.pageSize).asObservable().materialize()
+                let fetch = giphyService.search(text: term, offset: 0, limit: self.pageSize).asObservable().materialize()
                 // RxSwift 6 compact map would be nicer
                 let elements = fetch
                     .map { $0.element }

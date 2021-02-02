@@ -251,9 +251,6 @@ class ChiGiphyTests: XCTestCase {
             
             XCTAssertEqual(stateObserver.events, initialfetchEvents + expectedNewPageEvents)
         }
-        
-        
-        
     }
     
     func test_loadingMore_whenAlreadyLoadingNextPage() {
