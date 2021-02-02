@@ -189,6 +189,37 @@ class ChiGiphyTests: XCTestCase {
         }
     }
     
+    func test_loadingMore_returnsEmpty_afterFoundState() {
+        // Given
+        let sut = makeSUT()
+        let queryResult: [GiphyItem] = GiphyItem.createMocks(count: sut.pageSize)
+        
+        stubbedService.addSingleStub{ $0(.success(queryResult)) }
+        stubbedService.addSingleStub{ $0(.success([])) }
+        
+        SharingScheduler.mock(scheduler: testScheduler) {
+            let stateObserver = registerStateListener(for: sut)
+            
+            // When
+            /// Needs to fire query in specific times
+            let searchDebounce = sut.getSearchDebounce()
+            let _ = spoofInput(for: sut.query, events: [next(0, "Success query 1")])
+            
+            /// Spoofs user scrool after initial search
+            let _ = spoofInput(for: sut.indexPathWillBeShown, events: [next(searchDebounce + 1, IndexPath(row: queryResult.count - 1, section: 0))])
+            
+            // Then
+            testScheduler.start()
+            XCTAssertEqual(stateObserver.events, [
+                .next(0, .initial(InitialGiphyCellVM())),
+                .next(searchDebounce, .searching(SearchingGiphyCellVM())),
+                .next(searchDebounce, .found(queryResult.map { GiphyCellVM(item: $0) })),
+                .next(searchDebounce + 1, .loadingMore(LoadingMoreVM())),
+                .next(searchDebounce + 1, .found(queryResult.map { GiphyCellVM(item: $0) }))
+            ])
+        }
+    }
+    
     func test_loadingMore_scrollingToBottomMultipleTimes() {
         let n = 3 // Load more times
         // Given

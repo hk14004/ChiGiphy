@@ -72,14 +72,9 @@ class TDDGiphySearchVM {
                 return Observable<GiphySearchState>.create { (observer) -> Disposable in
                     observer.onNext(.loadingMore(LoadingMoreVM()))
                     materializedFetchRequest.elements.subscribe(onNext: { fetched in
-                        if fetched.isEmpty {
-                            // TODO: Stuck in loading
-                            //observer.onNext(.found())
-                        } else {
-                            let results = fetched.map { GiphyCellVM(item: $0)}
-                            fetchedItemVMs.accept(fetchedItemVMs.value + results)
-                            observer.onNext(.found(fetchedItemVMs.value))
-                        }
+                        let results = fetched.map { GiphyCellVM(item: $0)}
+                        fetchedItemVMs.accept(fetchedItemVMs.value + results)
+                        observer.onNext(.found(fetchedItemVMs.value))
                     }).disposed(by: loadMoreDisposables)
                     
                     // TODO: Add error case
