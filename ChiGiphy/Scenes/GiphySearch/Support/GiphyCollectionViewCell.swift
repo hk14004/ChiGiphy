@@ -18,7 +18,7 @@ class GiphyCollectionViewCell: UICollectionViewCell {
     
     private var bag = DisposeBag()
     
-    private var viewModel: GiphyCollectionViewCellVM?
+    private var viewModel: GiphyCellVM?
         
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -68,7 +68,7 @@ class GiphyCollectionViewCell: UICollectionViewCell {
         }
     }
     
-    func setup(with viewModel: GiphyCollectionViewCellVM) {
+    func setup(with viewModel: GiphyCellVM) {
         self.viewModel = viewModel
         
         viewModel.isLoadingDriver.drive(onNext: { isLoading in

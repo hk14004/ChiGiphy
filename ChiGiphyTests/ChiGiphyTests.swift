@@ -180,7 +180,7 @@ class ChiGiphyTests: XCTestCase {
                 .next(0, .initial(InitialGiphyCellVM())),
                 .next(searchDebounce, .searching(SearchingGiphyCellVM())),
                 .next(searchDebounce, .found(queryResult.map { GiphyCellVM(item: $0) })),
-                .next(searchDebounce + 1, .loadingMore(LoadingMoreVM())),
+                .next(searchDebounce + 1, .loadingMore(queryResult.map { GiphyCellVM(item: $0) },LoadingMoreCellVM())),
                 .next(searchDebounce + 1, .found(
                         queryResult.map { GiphyCellVM(item: $0) } +
                         nextPageResult.map { GiphyCellVM(item: $0) }
@@ -214,7 +214,7 @@ class ChiGiphyTests: XCTestCase {
                 .next(0, .initial(InitialGiphyCellVM())),
                 .next(searchDebounce, .searching(SearchingGiphyCellVM())),
                 .next(searchDebounce, .found(queryResult.map { GiphyCellVM(item: $0) })),
-                .next(searchDebounce + 1, .loadingMore(LoadingMoreVM())),
+                .next(searchDebounce + 1, .loadingMore(queryResult.map { GiphyCellVM(item: $0) }, LoadingMoreCellVM())),
                 .next(searchDebounce + 1, .found(queryResult.map { GiphyCellVM(item: $0) }))
             ])
         }
@@ -260,18 +260,18 @@ class ChiGiphyTests: XCTestCase {
             
             // TODO: Use n variable
             let expectedNewPageEvents: [Recorded<Event<GiphySearchState>>] = [
-                .next(searchDebounce + 1, .loadingMore(LoadingMoreVM())),
+                .next(searchDebounce + 1, .loadingMore(queryResult.map { GiphyCellVM(item: $0) }, LoadingMoreCellVM())),
                 .next(searchDebounce + 1, .found(
                         queryResult.map { GiphyCellVM(item: $0) } +
                         nextPageResults[0].map { GiphyCellVM(item: $0) }
                 )),
-                .next(searchDebounce + 2, .loadingMore(LoadingMoreVM())),
+                .next(searchDebounce + 2, .loadingMore(queryResult.map { GiphyCellVM(item: $0) } + nextPageResults[0].map { GiphyCellVM(item: $0) }, LoadingMoreCellVM())),
                 .next(searchDebounce + 2, .found(
                         queryResult.map { GiphyCellVM(item: $0) } +
                         nextPageResults[0].map { GiphyCellVM(item: $0) } +
                         nextPageResults[1].map { GiphyCellVM(item: $0) }
                 )),
-                .next(searchDebounce + 3, .loadingMore(LoadingMoreVM())),
+                .next(searchDebounce + 3, .loadingMore(queryResult.map { GiphyCellVM(item: $0) } + nextPageResults[0].map { GiphyCellVM(item: $0) } + nextPageResults[1].map { GiphyCellVM(item: $0) }, LoadingMoreCellVM())),
                 .next(searchDebounce + 3, .found(
                         queryResult.map { GiphyCellVM(item: $0) } +
                         nextPageResults[0].map { GiphyCellVM(item: $0) } +
@@ -311,7 +311,7 @@ class ChiGiphyTests: XCTestCase {
                 .next(0, .initial(InitialGiphyCellVM())),
                 .next(searchDebounce, .searching(SearchingGiphyCellVM())),
                 .next(searchDebounce, .found(queryResult.map { GiphyCellVM(item: $0) })),
-                .next(searchDebounce + 1, .loadingMore(LoadingMoreVM())),
+                .next(searchDebounce + 1, .loadingMore(queryResult.map { GiphyCellVM(item: $0) }, LoadingMoreCellVM())),
             ])
         }
     }
@@ -355,7 +355,7 @@ class ChiGiphyTests: XCTestCase {
                 .next(0, .initial(InitialGiphyCellVM())),
                 .next(searchDebounce, .searching(SearchingGiphyCellVM())),
                 .next(searchDebounce, .found(queryResult.map { GiphyCellVM(item: $0) })),
-                .next(searchDebounce + 1, .loadingMore(LoadingMoreVM())),
+                .next(searchDebounce + 1, .loadingMore(queryResult.map { GiphyCellVM(item: $0) },LoadingMoreCellVM())),
                 .next(searchDebounce * 2 + 2, .searching(SearchingGiphyCellVM())),
                 .next(searchDebounce * 2 + 2, .found(queryResult.map { GiphyCellVM(item: $0) }))
             ])

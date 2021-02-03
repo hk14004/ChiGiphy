@@ -14,7 +14,7 @@ enum GiphySearchState: Equatable {
     case notFound(NotFoundGiphyCellVM)
     case initial(InitialGiphyCellVM)
     case searching(SearchingGiphyCellVM)
-    case loadingMore(LoadingMoreVM)
+    case loadingMore([GiphyCellVM], LoadingMoreCellVM)
 }
 
 class TDDGiphySearchVM {
@@ -30,21 +30,28 @@ class TDDGiphySearchVM {
     
     var indexPathWillBeShown = PublishRelay<IndexPath>()
     
+    lazy var stateRelay: BehaviorRelay<GiphySearchState> = {
+        let relay = BehaviorRelay<GiphySearchState>(value: .initial(InitialGiphyCellVM()))
+        state.bind(to: relay).disposed(by: bag)
+        return relay
+    }()
+    
+    lazy var stateDriver: Driver<GiphySearchState> = {
+        stateRelay.asDriver()
+    }()
+        
+        
     var state: Observable<GiphySearchState> {
         Observable.merge(
             .just(.initial(InitialGiphyCellVM())),
             search(with: query),
             loadMore()
-        )
+        ).share()
     }
     
     private(set) var query = BehaviorRelay<String>(value: "")
     
     private let giphyService: GiphyServiceProtocol
-    
-    init(giphyService: GiphyServiceProtocol) {
-        self.giphyService = giphyService
-    }
     
     var bag = DisposeBag()
     
@@ -59,6 +66,13 @@ class TDDGiphySearchVM {
     
     private(set) var loadMoreDisposables = DisposeBag()
     
+    // MARK: Init
+
+    init(giphyService: GiphyServiceProtocol = GiphyService()) {
+        self.giphyService = giphyService
+    }
+    
+    // MARK: Methods
     private func loadMore() -> Observable<GiphySearchState> {
         indexPathWillBeShown
             .filter {
@@ -66,11 +80,11 @@ class TDDGiphySearchVM {
             }
             .distinctUntilChanged()
             .flatMapLatest {[unowned self] _ -> Observable<GiphySearchState>  in
-                let fetchRequest = giphyService.search(text: query.value, offset: fetchedItemVMs.value.count + 1, limit: self.pageSize).asObservable().share()
+                let fetchRequest = giphyService.search(text: query.value, offset: fetchedItemVMs.value.count + 1, limit: self.pageSize).asObservable().catchErrorJustReturn([]).share()
                 let materializedFetchRequest = MaterializedObservable(observable: fetchRequest)
                 
                 return Observable<GiphySearchState>.create { (observer) -> Disposable in
-                    observer.onNext(.loadingMore(LoadingMoreVM()))
+                    observer.onNext(.loadingMore(fetchedItemVMs.value,LoadingMoreCellVM()))
                     materializedFetchRequest.elements.subscribe(onNext: { fetched in
                         let results = fetched.map { GiphyCellVM(item: $0)}
                         fetchedItemVMs.accept(fetchedItemVMs.value + results)
@@ -80,7 +94,8 @@ class TDDGiphySearchVM {
                     // TODO: Add error case
                     materializedFetchRequest.errors.subscribe(onNext: { error in
                         print("Next page error:", error.localizedDescription)
-                    }).disposed(by: loadMoreDisposables)
+                    })
+                    .disposed(by: loadMoreDisposables)
                     
                     return Disposables.create()
                 }
@@ -96,7 +111,7 @@ class TDDGiphySearchVM {
                 // Dispose of loadMore
                 loadMoreDisposables = DisposeBag()
                 // Perform query
-                let fetchRequest = giphyService.search(text: term, offset: 0, limit: self.pageSize).asObservable().share()
+                let fetchRequest = giphyService.search(text: term, offset: 0, limit: self.pageSize).asObservable().retry().share()
                 let materializedFetchRequest = MaterializedObservable(observable: fetchRequest)
                 
                 return Observable<GiphySearchState>.create { (observer) -> Disposable in

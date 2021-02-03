@@ -22,8 +22,41 @@ class SearchingGiphyCellVM: Equatable, IdentifiableType {
 
 class GiphyCellVM: Equatable, IdentifiableType {
     
+    private let loadingSubject = BehaviorSubject<Bool>(value: false)
+    
+    var isLoadingDriver: Driver<Bool> {
+        loadingSubject.asDriver(onErrorJustReturn: true)
+    }
+    
+    var isLoadingObserver: AnyObserver<Bool> {
+        loadingSubject.asObserver()
+    }
+    
+    private let disposeBag = DisposeBag()
+    
+    func loadGifData() -> Observable<Data> {
+        loadingSubject.onNext(true)
+        let downloadObservable = GiphyService.shared.downloadGif(url: item.image.url)
+            .retry() //TOOD: Exp back off via RxSwiftExt?
+            .share()
+        downloadObservable.subscribe(onError: { error in
+            print("cell error")
+        }).disposed(by: disposeBag)
+        return downloadObservable
+    }
+        
+    deinit {
+        print("VM DEINIT")
+    }
+    
+    // MARK: TDD
+    
     var identity: String {
         item.id
+    }
+    
+    var size: CGSize {
+        CGSize(width: Int(item.image.width) ?? 0, height: Int(item.image.height) ?? 0)
     }
     
     private let item: GiphyItem
@@ -59,13 +92,13 @@ class NotFoundGiphyCellVM: Equatable {
     }
 }
 
-class LoadingMoreVM: Equatable {
+class LoadingMoreCellVM: Equatable {
     
     var identity: String {
         "\(Self.self)"
     }
     
-    static func == (lhs: LoadingMoreVM, rhs: LoadingMoreVM) -> Bool {
+    static func == (lhs: LoadingMoreCellVM, rhs: LoadingMoreCellVM) -> Bool {
         true
     }
 }

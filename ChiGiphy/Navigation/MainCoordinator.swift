@@ -12,9 +12,9 @@ class MainCoordinator {
     
     func start(with window: UIWindow) {
         // Create VM
-        let vm = GiphySearchVM()
+        let vm = TDDGiphySearchVM()
         // Create VC
-        let vc = GiphySearchVC(viewModel: vm)
+        let vc = TDDGiphySearchVC(viewModel: vm)
         // Create nav VC
         let navVc = UINavigationController(rootViewController: vc)
         // Start

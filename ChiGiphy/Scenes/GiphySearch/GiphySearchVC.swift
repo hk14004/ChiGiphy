@@ -76,7 +76,7 @@ class GiphySearchVC: GenericSearchVC<GiphyItem> {
             configureCell: {
                 (dataSource, collectionView, indexPath, item) -> UICollectionViewCell in
                 let cell: GiphyCollectionViewCell = collectionView.dequeueReusableCell(forIndexPath: indexPath)
-                cell.setup(with: GiphyCollectionViewCellVM(gifItem: item))
+                //cell.setup(with: GiphyCollectionViewCellVM(gifItem: item))
                 return cell
             })
         

@@ -19,7 +19,7 @@ struct GiphyItem: Decodable {
     
     public init(from decoder: Decoder) throws {
       let container = try decoder.container(keyedBy: CodingKeys.self)
-      self.id = try container.decode(String.self, forKey: .id)
+        self.id = UUID().uuidString
 
       let images = try container.nestedContainer(keyedBy: ImageKeys.self, forKey: .images)
       self.image = try images.decode(Image.self, forKey: .preview_gif)
