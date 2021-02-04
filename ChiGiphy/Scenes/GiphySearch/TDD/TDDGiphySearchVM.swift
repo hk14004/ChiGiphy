@@ -46,7 +46,7 @@ class TDDGiphySearchVM {
             .just(.initial(InitialGiphyCellVM())),
             search(with: query),
             loadMore()
-        ).share()
+        ).share().delay(0.1, scheduler: MainScheduler.instance)
     }
     
     private(set) var query = BehaviorRelay<String>(value: "")

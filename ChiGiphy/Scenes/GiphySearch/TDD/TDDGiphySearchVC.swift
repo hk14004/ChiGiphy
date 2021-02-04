@@ -96,8 +96,6 @@ final class TDDGiphySearchVC: UIViewController {
     private func bindToViewModel() {
         let sections: Observable<[GiphySection]> =
             viewModel.stateRelay
-            .debounce(0.1, scheduler: MainScheduler.instance)
-            .observeOn(MainScheduler.instance)
             .map({ state in
             switch state {
                 case .found(let gifsVMs):
