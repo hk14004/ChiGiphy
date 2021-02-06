@@ -32,7 +32,7 @@ class TDDGiphySearchVM {
     
     lazy var stateRelay: BehaviorRelay<GiphySearchState> = {
         let relay = BehaviorRelay<GiphySearchState>(value: .initial(InitialGiphyCellVM()))
-        state.bind(to: relay).disposed(by: bag)
+        state.delay(0.1, scheduler: MainScheduler.instance).bind(to: relay).disposed(by: bag)
         return relay
     }()
     
@@ -46,7 +46,7 @@ class TDDGiphySearchVM {
             .just(.initial(InitialGiphyCellVM())),
             search(with: query),
             loadMore()
-        ).share().delay(0.1, scheduler: MainScheduler.instance)
+        ).share()
     }
     
     private(set) var query = BehaviorRelay<String>(value: "")
