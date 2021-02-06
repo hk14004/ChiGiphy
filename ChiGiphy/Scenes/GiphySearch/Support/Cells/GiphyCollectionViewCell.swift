@@ -12,14 +12,16 @@ import Cartography
 
 class GiphyCollectionViewCell: UICollectionViewCell {
     
+    // MARK: Vars
+    
     private let giphyImageView = GIFImageView()
     
     private let activityIndicator = UIActivityIndicatorView()
     
     private var bag = DisposeBag()
     
-    private var viewModel: GiphyCellVM?
-        
+    // MARK: Init
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupHearchy()
@@ -27,13 +29,19 @@ class GiphyCollectionViewCell: UICollectionViewCell {
         setupLayout()
     }
     
-    func setupViews() {
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    // MARK: Methods
+    
+    private func setupViews() {
         contentView.backgroundColor = UIColor.PrimaryBackground
         activityIndicator.hidesWhenStopped = true
         giphyImageView.contentMode = .scaleAspectFit
     }
     
-    func setupLayout() {
+    private func setupLayout() {
         constrain(giphyImageView, contentView) { $0.edges == $1.edges }
         constrain(activityIndicator, contentView) {
             $0.centerY == $1.centerY
@@ -69,32 +77,28 @@ class GiphyCollectionViewCell: UICollectionViewCell {
     }
     
     func setup(with viewModel: GiphyCellVM) {
-        self.viewModel = viewModel
-        
-        viewModel.isLoadingDriver.drive(onNext: { isLoading in
-            self.changeState(readyToAnimate: !isLoading)
+        viewModel.stateRelay
+            .observeOn(MainScheduler.instance)
+            .subscribe(onNext: {[unowned self] state in
+            switch state {
+            case .initial, .downloading:
+                changeState(readyToAnimate: false)
+            case .downloaded(let gifData):
+                prepareForAnimation(with: gifData)
+                    .observeOn(MainScheduler.instance)
+                    .subscribe(onCompleted: {
+                        changeState(readyToAnimate: true)
+                }).disposed(by: bag)
+            }
         }).disposed(by: bag)
-
-
-        viewModel.loadGifData().flatMapLatest { (data)  in
-            return self.prepareForAnimation(with: data)
-        }.bind(to: viewModel.isLoadingObserver)
-        .disposed(by: bag)
     }
         
-    func prepareForAnimation(with gifData: Data) -> Observable<Bool> {
+    private func prepareForAnimation(with gifData: Data) -> Observable<Void> {
         return Observable.create { observer in
-            DispatchQueue.main.async {
-                self.giphyImageView.prepareForAnimation(withGIFData: gifData, loopCount: 0) {
-                    observer.onNext(false)
-                    observer.onCompleted()
-                }
+            self.giphyImageView.prepareForAnimation(withGIFData: gifData, loopCount: 0) {
+                observer.onCompleted()
             }
             return Disposables.create()
         }
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
     }
 }

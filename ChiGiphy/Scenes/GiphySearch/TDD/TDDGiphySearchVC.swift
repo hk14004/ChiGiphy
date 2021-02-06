@@ -80,10 +80,11 @@ final class TDDGiphySearchVC: UIViewController {
                     return cell
                 case .found(let vm):
                     let cell: GiphyCollectionViewCell = cv.dequeueReusableCell(forIndexPath: indexPath)
+                    //cell.setup(with: GiphyCellVM(item: vm.item))
                     cell.setup(with: vm)
                     return cell
                 case .searching(_):
-                    let cell: SearchingGiphyCell = cv.dequeueReusableCell(forIndexPath: indexPath)
+                    let cell: SearchingGiphyCollectionViewCell = cv.dequeueReusableCell(forIndexPath: indexPath)
                     return cell
                 case .loadingMore(_):
                     let cell: LoadingMoreGiphyCell = cv.dequeueReusableCell(forIndexPath: indexPath)
@@ -159,8 +160,8 @@ final class TDDGiphySearchVC: UIViewController {
                                    forCellWithReuseIdentifier: GiphyCollectionViewCell.reuseIdentifier)
         gifCollectionView.register(InitialGiphyCollectionViewCell.self,
                                    forCellWithReuseIdentifier: InitialGiphyCollectionViewCell.reuseIdentifier)
-        gifCollectionView.register(SearchingGiphyCell.self,
-                                   forCellWithReuseIdentifier: SearchingGiphyCell.reuseIdentifier)
+        gifCollectionView.register(SearchingGiphyCollectionViewCell.self,
+                                   forCellWithReuseIdentifier: SearchingGiphyCollectionViewCell.reuseIdentifier)
         gifCollectionView.register(NotFoundGiphyCollectionViewCell.self,
                                    forCellWithReuseIdentifier: NotFoundGiphyCollectionViewCell.reuseIdentifier)
         gifCollectionView.register(LoadingMoreGiphyCell.self,

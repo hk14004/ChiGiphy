@@ -55,7 +55,7 @@ class TDDGiphySearchVM {
     
     var bag = DisposeBag()
     
-    private var fetchedItemVMs = BehaviorRelay<[GiphyCellVM]>(value: [])
+    var fetchedItemVMs = BehaviorRelay<[GiphyCellVM]>(value: [])
     
     func shouldLoadItems(indexPath: IndexPath) -> Bool {
         if fetchedItemVMs.value.isEmpty {
