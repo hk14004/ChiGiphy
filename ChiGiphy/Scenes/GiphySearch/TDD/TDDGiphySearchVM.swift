@@ -28,19 +28,14 @@ class TDDGiphySearchVM {
     /// Query input interval
     let queryDebounce = 0.5
     
-    var indexPathWillBeShown = PublishRelay<IndexPath>()
+    private(set) var indexPathWillBeShown = PublishRelay<IndexPath>()
     
-    lazy var stateRelay: BehaviorRelay<GiphySearchState> = {
+    private(set) lazy var stateRelay: BehaviorRelay<GiphySearchState> = {
         let relay = BehaviorRelay<GiphySearchState>(value: .initial(InitialGiphyCellVM()))
         state.skip(1).delay(0.1, scheduler: MainScheduler.instance).bind(to: relay).disposed(by: bag)
         return relay
     }()
     
-    lazy var stateDriver: Driver<GiphySearchState> = {
-        stateRelay.asDriver()
-    }()
-        
-        
     var state: Observable<GiphySearchState> {
         Observable.merge(
             .just(.initial(InitialGiphyCellVM())),
@@ -53,16 +48,9 @@ class TDDGiphySearchVM {
     
     private let giphyService: GiphyServiceProtocol
     
-    var bag = DisposeBag()
+    private var bag = DisposeBag()
     
-    var fetchedItemVMs = BehaviorRelay<[GiphyCellVM]>(value: [])
-    
-    func shouldLoadItems(indexPath: IndexPath) -> Bool {
-        if fetchedItemVMs.value.isEmpty {
-            return false
-        }
-        return fetchedItemVMs.value.count - (indexPath.row + 1)  <= loadWhenItemsLeft
-    }
+    private(set) var fetchedItemVMs = BehaviorRelay<[GiphyCellVM]>(value: [])
     
     private(set) var loadMoreDisposables = DisposeBag()
     
@@ -73,87 +61,44 @@ class TDDGiphySearchVM {
     }
     
     // MARK: Methods
-    private func loadMore() -> Observable<GiphySearchState> {
-        indexPathWillBeShown
-            .filter {
-                self.shouldLoadItems(indexPath: $0)
-            }
-            .distinctUntilChanged()
-            .flatMapLatest {[unowned self] _ -> Observable<GiphySearchState>  in
-                let fetchRequest = giphyService.search(text: query.value, offset: fetchedItemVMs.value.count + 1, limit: self.pageSize).asObservable().catchErrorJustReturn([]).share()
-                let materializedFetchRequest = MaterializedObservable(observable: fetchRequest)
-                
-                return Observable<GiphySearchState>.create { (observer) -> Disposable in
-                    observer.onNext(.loadingMore(fetchedItemVMs.value,LoadingMoreCellVM()))
-                    materializedFetchRequest.elements.subscribe(onNext: { fetched in
-                        let results = fetched.map { GiphyCellVM(item: $0)}
-                        fetchedItemVMs.accept(fetchedItemVMs.value + results)
-                        observer.onNext(.found(fetchedItemVMs.value))
-                    }).disposed(by: loadMoreDisposables)
-                    
-                    // TODO: Add error case
-                    materializedFetchRequest.errors.subscribe(onNext: { error in
-                        print("Next page error:", error.localizedDescription)
-                    })
-                    .disposed(by: loadMoreDisposables)
-                    
-                    return Disposables.create()
-                }
-            }
-    }
     
     private func search(with query: BehaviorRelay<String>) -> Observable<GiphySearchState> {
         query
             .filter { !$0.isEmpty }
             .distinctUntilChanged()
             .debounce(queryDebounce, scheduler: DriverSharingStrategy.scheduler)
-            .flatMapLatest { [unowned self] term -> Observable<GiphySearchState> in
-                // Dispose of loadMore
+            .flatMapLatest { [unowned self] term -> Observable<[GiphyItem]> in
+                // Dispose of load more request
                 loadMoreDisposables = DisposeBag()
                 // Perform query
-                let fetchRequest = giphyService.search(text: term, offset: 0, limit: self.pageSize).asObservable().retry().share()
-                let materializedFetchRequest = MaterializedObservable(observable: fetchRequest)
-                
-                return Observable<GiphySearchState>.create { (observer) -> Disposable in
-                    observer.onNext(.searching(SearchingGiphyCellVM()))
-                    materializedFetchRequest.elements.subscribe(onNext: { fetched in
-                        if fetched.isEmpty {
-                            observer.onNext(.notFound(NotFoundGiphyCellVM()))
-                        } else {
-                            let items = fetched.map { GiphyCellVM(item: $0)}
-                            fetchedItemVMs.accept(items)
-                            observer.onNext(.found(items))
-                        }
-                    }).disposed(by: bag)
-                    
-                    // TODO: Add error case
-                    materializedFetchRequest.errors.subscribe(onNext: { error in
-                        print("Search error:", error.localizedDescription)
-                    }).disposed(by: bag)
-                    
-                    return Disposables.create()
+                return giphyService.search(text: term, offset: 0, limit: self.pageSize).asObservable().retry()
+            }.map { [unowned self] (items) -> GiphySearchState in
+                if items.isEmpty {
+                    return .notFound(NotFoundGiphyCellVM())
                 }
+                let fetched = items.map { GiphyCellVM(item: $0) }
+                fetchedItemVMs.accept(fetched)
+                return .found(fetched)
             }
     }
-}
-
-class MaterializedObservable<T> {
     
-    let elements: Observable<T>
+    private func loadMore() -> Observable<GiphySearchState> {
+        indexPathWillBeShown
+            .filter { self.shouldLoadItems(indexPath: $0) }
+            .distinctUntilChanged()
+            .flatMapLatest {[unowned self] _ -> Observable<[GiphyItem]>  in
+                return giphyService.search(text: query.value, offset: fetchedItemVMs.value.count + 1, limit: self.pageSize).asObservable().retry()
+            }.map { [unowned self] (items) -> GiphySearchState in
+                let newList = fetchedItemVMs.value + items.map { GiphyCellVM(item: $0) }
+                fetchedItemVMs.accept(newList)
+                return .found(newList)
+            }
+    }
     
-    let errors: Observable<Error>
-    
-    init(observable: Observable<T>) {
-        let materialized = observable.materialize()
-        
-        self.elements = materialized
-            .map { $0.element }
-            .filter { $0 != nil }
-            .map { $0! }
-        
-        self.errors = materialized
-            .map { $0.error }
-            .filter { $0 != nil }
-            .map { $0! }
+    func shouldLoadItems(indexPath: IndexPath) -> Bool {
+        if fetchedItemVMs.value.isEmpty {
+            return false
+        }
+        return fetchedItemVMs.value.count - (indexPath.row + 1)  <= loadWhenItemsLeft
     }
 }
