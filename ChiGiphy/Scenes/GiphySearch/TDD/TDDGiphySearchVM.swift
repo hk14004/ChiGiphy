@@ -32,7 +32,7 @@ class TDDGiphySearchVM {
     
     lazy var stateRelay: BehaviorRelay<GiphySearchState> = {
         let relay = BehaviorRelay<GiphySearchState>(value: .initial(InitialGiphyCellVM()))
-        state.delay(0.1, scheduler: MainScheduler.instance).bind(to: relay).disposed(by: bag)
+        state.skip(1).delay(0.1, scheduler: MainScheduler.instance).bind(to: relay).disposed(by: bag)
         return relay
     }()
     
