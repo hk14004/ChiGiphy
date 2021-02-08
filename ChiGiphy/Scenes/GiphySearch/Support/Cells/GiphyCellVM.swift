@@ -47,7 +47,7 @@ class GiphyCellVM {
         Observable<GiphyCellVMState>.create { [unowned self] (observer) -> Disposable in
             observer.onNext(.downloading)
             GiphyService.shared.downloadGif(url: item.image.url)
-                .retry() //TOOD: Exp back off via RxSwiftExt?
+                .retry(.delayed(maxCount: UInt.max, time: 3))
                 .share()
                 .subscribe { (data) in
                     observer.onNext(.downloaded(data))

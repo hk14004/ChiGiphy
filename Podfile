@@ -14,6 +14,7 @@ target 'ChiGiphy' do
   pod 'Cartography', '~> 3.0'
   pod 'NVActivityIndicatorView'
   pod 'SCLAlertView'
+  pod 'RxSwiftExt'
   
   target 'ChiGiphyTests' do
       inherit! :search_paths

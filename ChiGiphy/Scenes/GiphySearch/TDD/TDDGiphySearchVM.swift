@@ -8,6 +8,7 @@
 import Foundation
 import RxSwift
 import RxCocoa
+import RxSwiftExt
 
 enum GiphySearchState: Equatable {
     case found([GiphyCellVM])
@@ -39,8 +40,8 @@ class TDDGiphySearchVM {
     var state: Observable<GiphySearchState> {
         Observable.merge(
             .just(.initial(InitialGiphyCellVM())),
-            search(with: query),
-            loadMore()
+            respondToSearchInput(),
+            respondToLoadMoreScrollInput()
         ).share()
     }
     
@@ -54,6 +55,8 @@ class TDDGiphySearchVM {
     
     private(set) var loadMoreDisposables = DisposeBag()
     
+    private(set) var searchDisposables = DisposeBag()
+    
     // MARK: Init
 
     init(giphyService: GiphyServiceProtocol = GiphyService()) {
@@ -62,40 +65,79 @@ class TDDGiphySearchVM {
     
     // MARK: Methods
     
-    private func search(with query: BehaviorRelay<String>) -> Observable<GiphySearchState> {
+    private func respondToSearchInput() -> Observable<GiphySearchState> {
         query
             .filter { !$0.isEmpty }
             .distinctUntilChanged()
             .debounce(queryDebounce, scheduler: DriverSharingStrategy.scheduler)
-            .flatMapLatest { [unowned self] term -> Observable<[GiphyItem]> in
-                // Dispose of load more request
-                loadMoreDisposables = DisposeBag()
-                // Perform query
-                return giphyService.search(text: term, offset: 0, limit: self.pageSize).asObservable().retry()
-            }.map { [unowned self] (items) -> GiphySearchState in
-                if items.isEmpty {
-                    return .notFound(NotFoundGiphyCellVM())
-                }
-                let fetched = items.map { GiphyCellVM(item: $0) }
-                fetchedItemVMs.accept(fetched)
-                return .found(fetched)
+            .flatMapLatest { [unowned self] term -> Observable<GiphySearchState> in
+               performSearchRequest(with: term)
             }
     }
     
-    private func loadMore() -> Observable<GiphySearchState> {
+    private func respondToLoadMoreScrollInput() -> Observable<GiphySearchState> {
         indexPathWillBeShown
-            .filter { self.shouldLoadItems(indexPath: $0) }
+            .filter { self.shouldLoadNextPage(indexPath: $0) }
             .distinctUntilChanged()
-            .flatMapLatest {[unowned self] _ -> Observable<[GiphyItem]>  in
-                return giphyService.search(text: query.value, offset: fetchedItemVMs.value.count + 1, limit: self.pageSize).asObservable().retry()
-            }.map { [unowned self] (items) -> GiphySearchState in
-                let newList = fetchedItemVMs.value + items.map { GiphyCellVM(item: $0) }
-                fetchedItemVMs.accept(newList)
-                return .found(newList)
+            .flatMapLatest { [unowned self]  _ in
+                performLoadMoreRequest()
             }
     }
     
-    func shouldLoadItems(indexPath: IndexPath) -> Bool {
+    private func performSearchRequest(with term: String) -> Observable<GiphySearchState> {
+        Observable<GiphySearchState>.create { [unowned self] (observer) -> Disposable in
+            // Dispose of pending requests
+            loadMoreDisposables = DisposeBag()
+            searchDisposables = DisposeBag()
+
+            // Perform query
+            observer.onNext(.searching(SearchingGiphyCellVM()))
+            giphyService.search(text: term, offset: 0, limit: self.pageSize)
+                .asObservable()
+                .retry(.delayed(maxCount: UInt.max, time: 3))
+                .subscribe { (items) in
+                    guard !items.isEmpty else {
+                        observer.onNext(.notFound(NotFoundGiphyCellVM()))
+                        return
+                    }
+                    let fetched = items.map { GiphyCellVM(item: $0) }
+                    fetchedItemVMs.accept(fetched)
+                    observer.onNext(.found(fetched))
+                } onError: { (error) in
+                    print("Search errored out:", error.localizedDescription)
+                } onDisposed: {
+                  print("Search disposed")
+                }.disposed(by: searchDisposables)
+
+            return Disposables.create()
+        }
+    }
+    
+    private func performLoadMoreRequest() -> Observable<GiphySearchState> {
+        Observable<GiphySearchState>.create { [unowned self] (observer) -> Disposable in
+            // Dispose of pending requests
+            loadMoreDisposables = DisposeBag()
+
+            // Perform load more
+            observer.onNext(.loadingMore(fetchedItemVMs.value, LoadingMoreCellVM()))
+            giphyService.search(text: query.value, offset: fetchedItemVMs.value.count + 1, limit: self.pageSize)
+                .asObservable()
+                .retry(.delayed(maxCount: UInt.max, time: 3))
+                .subscribe { (items) in
+                    let fetched = items.map { GiphyCellVM(item: $0) }
+                    fetchedItemVMs.accept(fetchedItemVMs.value + fetched)
+                    observer.onNext(.found(fetchedItemVMs.value))
+                } onError: { (error) in
+                    print("Load more errored out:", error.localizedDescription)
+                } onDisposed: {
+                  print("Load more disposed")
+                }.disposed(by: loadMoreDisposables)
+
+            return Disposables.create()
+        }
+    }
+    
+    func shouldLoadNextPage(indexPath: IndexPath) -> Bool {
         if fetchedItemVMs.value.isEmpty {
             return false
         }
