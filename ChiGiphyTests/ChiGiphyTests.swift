@@ -372,7 +372,7 @@ class ChiGiphyTests: XCTestCase {
     
     func registerStateListener(for sut: TDDGiphySearchVM) -> TestableObserver<GiphySearchState> {
         let observer = testScheduler.createObserver(GiphySearchState.self)
-        sut.state.bind(to: observer).disposed(by: bag)
+        sut.stateRelay.bind(to: observer).disposed(by: bag)
         return observer
     }
     

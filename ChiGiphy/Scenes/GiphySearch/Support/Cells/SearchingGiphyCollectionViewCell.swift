@@ -36,8 +36,8 @@ class SearchingGiphyCollectionViewCell: UICollectionViewCell {
         activityIndicator.startAnimating()
         
         // Layout
-        addSubview(activityIndicator)
-        constrain(activityIndicator, self) { ac, view in
+        contentView.addSubview(activityIndicator)
+        constrain(activityIndicator, contentView) { ac, view in
             ac.center == view.center
             ac.height == 100
             ac.width == 100

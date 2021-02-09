@@ -97,8 +97,11 @@ final class TDDGiphySearchVC: UIViewController {
     private func bindToViewModel() {
         let sections: Observable<[GiphySection]> =
             viewModel.stateRelay
+            .asObservable()
+            .debounce(0.1, scheduler: MainScheduler.instance)
+            .observeOn(MainScheduler.instance)
             .map({ state in
-            switch state {
+                switch state {
                 case .found(let gifsVMs):
                     return [GiphySection(model: "Found", items: gifsVMs.map { CellViewModel.found($0)})]
                 case .notFound(let notFoundVM):
@@ -115,6 +118,14 @@ final class TDDGiphySearchVC: UIViewController {
         })
                 
         sections.bind(to: gifCollectionView.rx.items(dataSource: dataSource)).disposed(by: bag)
+        
+        // Scrolls to top to reset state between searches
+        viewModel.stateRelay.subscribe(onNext: { [unowned self] (state) in
+            if case .searching(_) = state {
+                gifCollectionView.scrollToItem(at: .init(row: 0, section: 0), at: .top, animated: false)
+            }
+        }).disposed(by: bag)
+
         
         searchController.searchBar
             .rx
@@ -155,6 +166,10 @@ final class TDDGiphySearchVC: UIViewController {
         constrain(gifCollectionView, view) { $0.edges == $1.edges }
     }
     
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        gifCollectionView.collectionViewLayout.invalidateLayout()
+    }
     private func registerCollectionViewCells() {
         gifCollectionView.register(GiphyCollectionViewCell.self,
                                    forCellWithReuseIdentifier: GiphyCollectionViewCell.reuseIdentifier)
@@ -167,14 +182,17 @@ final class TDDGiphySearchVC: UIViewController {
         gifCollectionView.register(LoadingMoreGiphyCell.self,
                                    forCellWithReuseIdentifier: LoadingMoreGiphyCell.reuseIdentifier)
     }
+    
+    override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        gifCollectionView.collectionViewLayout.invalidateLayout()
+    }
 }
 
 extension TDDGiphySearchVC: CHTCollectionViewDelegateWaterfallLayout  {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         switch viewModel.stateRelay.value {
-        case .found(let vms):
-            return vms[indexPath.row].size
-        case .loadingMore(let vms, _):
+        case .loadingMore(let vms, _), .found(let vms):
             if indexPath.section == 1 {
                 return CGSize(width: collectionView.bounds.width, height: 50)
             }

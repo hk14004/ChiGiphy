@@ -28,22 +28,18 @@ class TDDGiphySearchVM {
     
     /// Query input interval
     let queryDebounce = 0.5
-    
+
     private(set) var indexPathWillBeShown = PublishRelay<IndexPath>()
     
     private(set) lazy var stateRelay: BehaviorRelay<GiphySearchState> = {
         let relay = BehaviorRelay<GiphySearchState>(value: .initial(InitialGiphyCellVM()))
-        state.skip(1).delay(0.1, scheduler: MainScheduler.instance).bind(to: relay).disposed(by: bag)
-        return relay
-    }()
-    
-    var state: Observable<GiphySearchState> {
         Observable.merge(
-            .just(.initial(InitialGiphyCellVM())),
             respondToSearchInput(),
             respondToLoadMoreScrollInput()
-        ).share()
-    }
+        )
+        .bind(to: relay).disposed(by: bag)
+        return relay
+    }()
     
     private(set) var query = BehaviorRelay<String>(value: "")
     
