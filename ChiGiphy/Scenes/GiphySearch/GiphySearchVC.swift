@@ -1,5 +1,5 @@
 //
-//  TDDGiphySearchVC.swift
+//  GiphySearchVC.swift
 //  ChiGiphy
 //
 //  Created by Hardijs on 29/01/2021.
@@ -12,7 +12,7 @@ import RxCocoa
 import Cartography
 import SCLAlertView
 
-final class TDDGiphySearchVC: UIViewController {
+final class GiphySearchVC: UIViewController {
     
     // MARK: Types
     
@@ -42,7 +42,7 @@ final class TDDGiphySearchVC: UIViewController {
     
     var dataSource: RxCollectionViewSectionedAnimatedDataSource<GiphySection>!
     
-    let viewModel: TDDGiphySearchVM // TODO: Protocol
+    let viewModel: GiphySearchVM // TODO: Protocol
     
     let bag = DisposeBag()
     
@@ -50,7 +50,7 @@ final class TDDGiphySearchVC: UIViewController {
     
     // MARK: Init
     
-    init(viewModel: TDDGiphySearchVM) {
+    init(viewModel: GiphySearchVM) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
@@ -80,7 +80,6 @@ final class TDDGiphySearchVC: UIViewController {
                     return cell
                 case .found(let vm):
                     let cell: GiphyCollectionViewCell = cv.dequeueReusableCell(forIndexPath: indexPath)
-                    //cell.setup(with: GiphyCellVM(item: vm.item))
                     cell.setup(with: vm)
                     return cell
                 case .searching(_):
@@ -92,7 +91,6 @@ final class TDDGiphySearchVC: UIViewController {
             }
         }
     }
-
 
     private func bindToViewModel() {
         let sections: Observable<[GiphySection]> =
@@ -189,7 +187,7 @@ final class TDDGiphySearchVC: UIViewController {
     }
 }
 
-extension TDDGiphySearchVC: CHTCollectionViewDelegateWaterfallLayout  {
+extension GiphySearchVC: CHTCollectionViewDelegateWaterfallLayout  {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         switch viewModel.stateRelay.value {
         case .loadingMore(let vms, _), .found(let vms):

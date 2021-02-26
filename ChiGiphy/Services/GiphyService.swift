@@ -19,6 +19,10 @@ struct Pagination: Decodable {
     let offset: Int
 }
 
+protocol GiphyServiceProtocol {
+    func search(text: String, offset: Int, limit: Int) -> Single<[GiphyItem]>
+}
+
 class GiphyService: GiphyServiceProtocol {
     func search(text: String, offset: Int, limit: Int) -> Single<[GiphyItem]> {
         let url = URL(string: "http://api.giphy.com/v1/gifs/search")!

@@ -1,5 +1,5 @@
 //
-//  TDDGiphySearchVM.swift
+//  GiphySearchVM.swift
 //  ChiGiphy
 //
 //  Created by Hardijs on 29/01/2021.
@@ -18,7 +18,7 @@ enum GiphySearchState: Equatable {
     case loadingMore([GiphyCellVM], LoadingMoreCellVM)
 }
 
-class TDDGiphySearchVM {
+class GiphySearchVM {
     
     /// Gif page size
     let pageSize = 20

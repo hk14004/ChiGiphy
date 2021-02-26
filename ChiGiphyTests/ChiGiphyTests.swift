@@ -366,11 +366,11 @@ class ChiGiphyTests: XCTestCase {
     
     // MARK: Helpers
     
-    private func makeSUT() -> TDDGiphySearchVM {
-        return TDDGiphySearchVM(giphyService: stubbedService)
+    private func makeSUT() -> GiphySearchVM {
+        return GiphySearchVM(giphyService: stubbedService)
     }
     
-    func registerStateListener(for sut: TDDGiphySearchVM) -> TestableObserver<GiphySearchState> {
+    func registerStateListener(for sut: GiphySearchVM) -> TestableObserver<GiphySearchState> {
         let observer = testScheduler.createObserver(GiphySearchState.self)
         sut.stateRelay.bind(to: observer).disposed(by: bag)
         return observer
@@ -392,7 +392,7 @@ class ChiGiphyTests: XCTestCase {
 
 
 
-extension TDDGiphySearchVM {
+extension GiphySearchVM {
     convenience init(stubbedGiphyService: GiphyServiceProtocol = StubbedGiphyService()) {
         self.init(giphyService: stubbedGiphyService)
     }
