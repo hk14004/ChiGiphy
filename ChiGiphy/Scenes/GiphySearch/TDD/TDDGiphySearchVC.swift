@@ -125,7 +125,6 @@ final class TDDGiphySearchVC: UIViewController {
                 gifCollectionView.scrollToItem(at: .init(row: 0, section: 0), at: .top, animated: false)
             }
         }).disposed(by: bag)
-
         
         searchController.searchBar
             .rx
@@ -156,6 +155,7 @@ final class TDDGiphySearchVC: UIViewController {
         layout.minimumColumnSpacing = 3.0
         layout.minimumInteritemSpacing = 3.0
         gifCollectionView.collectionViewLayout = layout
+        gifCollectionView.alwaysBounceVertical = true
     }
     
     private func setupCollectionView() {
@@ -163,7 +163,7 @@ final class TDDGiphySearchVC: UIViewController {
         registerCollectionViewCells()
         gifCollectionView.backgroundColor = UIColor.PrimaryBackground
         view.addSubview(gifCollectionView)
-        constrain(gifCollectionView, view) { $0.edges == $1.edges }
+        constrain(gifCollectionView, view.safeAreaLayoutGuide) { $0.edges == $1.edges }
     }
     
     override func viewDidLayoutSubviews() {
@@ -193,12 +193,12 @@ extension TDDGiphySearchVC: CHTCollectionViewDelegateWaterfallLayout  {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         switch viewModel.stateRelay.value {
         case .loadingMore(let vms, _), .found(let vms):
-            if indexPath.section == 1 {
-                return CGSize(width: collectionView.bounds.width, height: 50)
+            if indexPath.section == GiphyColletionViewSection.loading.rawValue {
+                return CGSize(width: collectionView.bounds.width, height: 44)
             }
             return vms[indexPath.row].size
         default:
-            return CGSize(width: collectionView.bounds.width, height: collectionView.bounds.height - (self.navigationController?.navigationBar.frame.size.height ?? 0))
+            return collectionView.bounds.size
         }
         
     }
@@ -206,9 +206,14 @@ extension TDDGiphySearchVC: CHTCollectionViewDelegateWaterfallLayout  {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, columnCountFor section: Int) -> Int {
         switch viewModel.stateRelay.value {
         case .found(_), .loadingMore(_, _):
-            return section == 0 ? 2 : 1
+            return section == GiphyColletionViewSection.giphyList.rawValue ? 2 : 1
         default:
             return 1
         }
     }
+}
+
+fileprivate enum GiphyColletionViewSection: Int {
+    case giphyList = 0
+    case loading
 }
