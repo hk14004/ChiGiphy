@@ -73,8 +73,9 @@ class GiphySearchVM {
     
     private func respondToLoadMoreScrollInput() -> Observable<GiphySearchState> {
         indexPathWillBeShown
-            .filter { self.shouldLoadNextPage(indexPath: $0) }
+            .map { self.shouldLoadNextPage(indexPath: $0) }
             .distinctUntilChanged()
+            .filter { $0 }
             .flatMapLatest { [unowned self]  _ in
                 performLoadMoreRequest()
             }

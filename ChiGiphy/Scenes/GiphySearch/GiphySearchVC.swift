@@ -131,7 +131,7 @@ final class GiphySearchVC: UIViewController {
             .bind(to: viewModel.query)
             .disposed(by: bag)
         
-        gifCollectionView.rx.willDisplayCell.map { $1 }
+        gifCollectionView.rx.willDisplayCell.map { $1 }.skip(1)
             .bind(to: viewModel.indexPathWillBeShown)
             .disposed(by: bag)
     }

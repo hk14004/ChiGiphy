@@ -24,24 +24,24 @@ struct GiphyItem: Decodable {
       let images = try container.nestedContainer(keyedBy: ImageKeys.self, forKey: .images)
       self.image = try images.decode(Image.self, forKey: .preview_gif)
     }
-
+    
     enum CodingKeys: String, CodingKey {
-      case id
-      case images
+        case id
+        case images
     }
-
+    
     enum ImageKeys: String, CodingKey {
-      case preview_gif = "preview_gif"
+        case preview_gif = "preview_gif"
     }
-  }
+}
 
-  extension GiphyItem {
+extension GiphyItem {
     struct Image: Codable, Hashable {
-      let height: String
-      let width: String
-      let url: URL
+        let height: String
+        let width: String
+        let url: URL
     }
-  }
+}
 
 extension GiphyItem: IdentifiableType {
     var identity: String {

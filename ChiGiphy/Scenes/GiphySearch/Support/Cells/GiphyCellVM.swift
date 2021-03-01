@@ -35,10 +35,13 @@ class GiphyCellVM {
         CGSize(width: Int(item.image.width) ?? 0, height: Int(item.image.height) ?? 0)
     }
     
+    private let service: GiphyServiceProtocol
+    
     // MARK: Init
     
     init(item: GiphyItem, service: GiphyServiceProtocol = GiphyService()) {
         self.item = item
+        self.service = service
     }
     
     // MARK: Methods
@@ -46,7 +49,7 @@ class GiphyCellVM {
     private func loadGif() -> Observable<GiphyCellVMState> {
         Observable<GiphyCellVMState>.create { [unowned self] (observer) -> Disposable in
             observer.onNext(.downloading)
-            GiphyService.shared.downloadGif(url: item.image.url)
+            service.downloadGif(url: item.image.url)
                 .retry(.delayed(maxCount: UInt.max, time: 3))
                 .share()
                 .subscribe { (data) in

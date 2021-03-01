@@ -245,6 +245,7 @@ class ChiGiphyTests: XCTestCase {
             var userScroolEvents: [Recorded<Event<IndexPath>>] = []
             for i in 1...n {
                 userScroolEvents.append(next(searchDebounce + 1 * i, IndexPath(row: sut.pageSize * i - 1, section: 0)))
+                userScroolEvents.append(next(searchDebounce + 1 * i, IndexPath(row: 0, section: 0))) // Used to fake loaded more finished scrolled position
             }
             
             let _ = spoofInput(for: sut.indexPathWillBeShown, events: userScroolEvents)
@@ -389,9 +390,6 @@ class ChiGiphyTests: XCTestCase {
     }
 }
 
-
-
-
 extension GiphySearchVM {
     convenience init(stubbedGiphyService: GiphyServiceProtocol = StubbedGiphyService()) {
         self.init(giphyService: stubbedGiphyService)
@@ -403,6 +401,7 @@ extension GiphySearchVM {
 }
 
 class StubbedGiphyService: GiphyServiceProtocol {
+    
     var stubbedResults: [Single<[GiphyItem]>] = []
     
     func search(text: String = "", offset: Int = 0, limit: Int = 0) -> Single<[GiphyItem]> {
@@ -415,6 +414,10 @@ class StubbedGiphyService: GiphyServiceProtocol {
             return Disposables.create()
         }
         stubbedResults.append(single)
+    }
+    
+    func downloadGif(url: URL) -> Observable<Data> {
+        fatalError("Not implemented")
     }
 }
 
