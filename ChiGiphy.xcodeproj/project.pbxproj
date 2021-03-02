@@ -23,6 +23,7 @@
 		D4A8B6C625AC98B8007B5F49 /* GiphyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A8B6C525AC98B8007B5F49 /* GiphyService.swift */; };
 		D4A8B6C925AC9E32007B5F49 /* URLSession+Rx.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A8B6C825AC9E32007B5F49 /* URLSession+Rx.swift */; };
 		D4B0AED925BF59090030B6AB /* Waterfall.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4B0AED825BF59090030B6AB /* Waterfall.swift */; };
+		D4CB9C1925ED374200D67B6A /* VMWrappers.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4CB9C1825ED374200D67B6A /* VMWrappers.swift */; };
 		D4D4671525ACF16A00BCFE44 /* ReusableViewProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4D4670625ACF16900BCFE44 /* ReusableViewProtocol.swift */; };
 		D4D4671725ACF16A00BCFE44 /* Cache.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4D4670A25ACF16900BCFE44 /* Cache.swift */; };
 		D4D4671E25ACF16A00BCFE44 /* CoordinatorProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4D4671325ACF16900BCFE44 /* CoordinatorProtocol.swift */; };
@@ -76,6 +77,7 @@
 		D4A8B6C525AC98B8007B5F49 /* GiphyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiphyService.swift; sourceTree = "<group>"; };
 		D4A8B6C825AC9E32007B5F49 /* URLSession+Rx.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "URLSession+Rx.swift"; sourceTree = "<group>"; };
 		D4B0AED825BF59090030B6AB /* Waterfall.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Waterfall.swift; sourceTree = "<group>"; };
+		D4CB9C1825ED374200D67B6A /* VMWrappers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMWrappers.swift; sourceTree = "<group>"; };
 		D4D4670625ACF16900BCFE44 /* ReusableViewProtocol.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReusableViewProtocol.swift; sourceTree = "<group>"; };
 		D4D4670A25ACF16900BCFE44 /* Cache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Cache.swift; sourceTree = "<group>"; };
 		D4D4671325ACF16900BCFE44 /* CoordinatorProtocol.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoordinatorProtocol.swift; sourceTree = "<group>"; };
@@ -255,6 +257,7 @@
 				D4D4670725ACF16900BCFE44 /* Storage */,
 				D4D4671325ACF16900BCFE44 /* CoordinatorProtocol.swift */,
 				D4D4670625ACF16900BCFE44 /* ReusableViewProtocol.swift */,
+				D4CB9C1825ED374200D67B6A /* VMWrappers.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -514,6 +517,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D4CB9C1925ED374200D67B6A /* VMWrappers.swift in Sources */,
 				D4F7548425CECCC7008E3CA7 /* LoadingMoreGiphyCollectionViewCell.swift in Sources */,
 				D4ECAD1825B5E72100E0839B /* GenericSearchVC.swift in Sources */,
 				D4F7547025CECA2A008E3CA7 /* InitialGiphyCellVM.swift in Sources */,

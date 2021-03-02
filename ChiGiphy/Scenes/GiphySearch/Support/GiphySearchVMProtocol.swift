@@ -9,12 +9,29 @@ import Foundation
 import RxSwift
 import RxCocoa
 
-//protocol GiphySearchVMProtocol {
-//    var title: String { get }
-//    var sectionData: Driver<[GiphySection]> { get }
-//    var indexPathWillBeShown: AnyObserver<IndexPath> { get }
-//    var gifColumns: Int { get }
-//    var loadingObservable: Observable<Bool> { get }
-//    var errorDriver: Driver<SearchError?> { get }
-//    func getGifSize(at indexPath: IndexPath) -> CGSize
-//}
+protocol GiphySearchVMProtocol {
+
+    //MARK: Vars
+    
+    /// Gif page size
+    var pageSize: Int { get }
+    
+    /// Load new page when x elements left to display
+    var loadWhenItemsLeft: Int { get }
+    
+    /// Query input interval
+    var queryDebounce: Double { get }
+    
+    // MARK: Input
+
+    var indexPathWillBeShownInput: AnyObserver<IndexPath> { get }
+    var queryInput: AnyObserver<String> { get }
+    
+    // MARK: Output
+    
+    var stateOutput: Observable<GiphySearchState> { get }
+    
+    // MARK: Methods
+    
+    func getCurrentState() -> GiphySearchState
+}

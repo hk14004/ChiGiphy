@@ -76,8 +76,8 @@ class GiphyCollectionViewCell: UICollectionViewCell {
         }
     }
     
-    func setup(with viewModel: GiphyCellVM) {
-        viewModel.stateRelay
+    func setup(with viewModel: GiphyCellVMProtocol) {
+        viewModel.state
             .observeOn(MainScheduler.instance)
             .subscribe(onNext: {[unowned self] state in
             switch state {

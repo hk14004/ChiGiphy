@@ -16,24 +16,29 @@ enum GiphyCellVMState {
     case downloaded(Data)
 }
 
-class GiphyCellVM {
+protocol GiphyCellVMProtocol {
+    
+    // MARK: Output
+    
+    var state: Observable<GiphyCellVMState> { get }
+    var size: CGSize { get }
+}
+
+class GiphyCellVM: GiphyCellVMProtocol{
+    
+    // MARK: Output
+    
+    @VMOutput(.initial) var state: Observable<GiphyCellVMState>
     
     // MARK: Vars
     
-    let item: GiphyItem
-    
-    lazy var stateRelay: BehaviorRelay<GiphyCellVMState> = {
-        let relay = BehaviorRelay<GiphyCellVMState>(value: .initial)
-        loadGif().bind(to: relay).disposed(by: disposeBag)
-        
-        return relay
-    }()
-    
-    private let disposeBag = DisposeBag()
+    private let item: GiphyItem
     
     var size: CGSize {
         CGSize(width: Int(item.image.width) ?? 0, height: Int(item.image.height) ?? 0)
     }
+    
+    private let disposeBag = DisposeBag()
     
     private let service: GiphyServiceProtocol
     
@@ -42,6 +47,7 @@ class GiphyCellVM {
     init(item: GiphyItem, service: GiphyServiceProtocol = GiphyService()) {
         self.item = item
         self.service = service
+        loadGif().bind(to: $state).disposed(by: disposeBag)
     }
     
     // MARK: Methods
@@ -51,15 +57,8 @@ class GiphyCellVM {
             observer.onNext(.downloading)
             service.downloadGif(url: item.image.url)
                 .retry(.delayed(maxCount: UInt.max, time: 3))
-                .share()
                 .subscribe { (data) in
                     observer.onNext(.downloaded(data))
-                } onError: { (error) in
-                    print("Cell error")
-                } onCompleted: {
-                    print("Cell completed")
-                } onDisposed: {
-                    print("Cell disposed")
                 }.disposed(by: disposeBag)
             
             return Disposables.create()

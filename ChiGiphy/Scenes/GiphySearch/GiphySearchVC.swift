@@ -14,43 +14,21 @@ import SCLAlertView
 
 final class GiphySearchVC: UIViewController {
     
-    // MARK: Types
-    
-    typealias GiphySection = AnimatableSectionModel<String, CellViewModel>
-    
-    enum CellViewModel: Equatable, IdentifiableType {
-        case found(GiphyCellVM)
-        case notFound(NotFoundGiphyCellVM)
-        case initial(InitialGiphyCellVM)
-        case searching(SearchingGiphyCellVM)
-        case loadingMore(LoadingMoreCellVM)
-        
-        var identity: String {
-            switch self {
-                case .found(let vm): return vm.identity
-                case .notFound(let vm): return vm.identity
-                case .initial(let vm): return vm.identity
-                case .searching(let vm): return vm.identity
-                case .loadingMore(let vm): return vm.identity
-            }
-        }
-    }
-    
     // MARK: Vars
     
     private var gifCollectionView: UICollectionView!
     
-    var dataSource: RxCollectionViewSectionedAnimatedDataSource<GiphySection>!
+    private var dataSource: RxCollectionViewSectionedAnimatedDataSource<GiphySection>!
     
-    let viewModel: GiphySearchVM // TODO: Protocol
+    private let viewModel: GiphySearchVMProtocol
     
-    let bag = DisposeBag()
+    private let bag = DisposeBag()
     
     private let searchController = UISearchController(searchResultsController: nil)
     
     // MARK: Init
     
-    init(viewModel: GiphySearchVM) {
+    init(viewModel: GiphySearchVMProtocol) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
@@ -94,8 +72,7 @@ final class GiphySearchVC: UIViewController {
 
     private func bindToViewModel() {
         let sections: Observable<[GiphySection]> =
-            viewModel.stateRelay
-            .asObservable()
+            viewModel.stateOutput
             .debounce(0.1, scheduler: MainScheduler.instance)
             .observeOn(MainScheduler.instance)
             .map({ state in
@@ -118,7 +95,7 @@ final class GiphySearchVC: UIViewController {
         sections.bind(to: gifCollectionView.rx.items(dataSource: dataSource)).disposed(by: bag)
         
         // Scrolls to top to reset state between searches
-        viewModel.stateRelay.subscribe(onNext: { [unowned self] (state) in
+        viewModel.stateOutput.subscribe(onNext: { [unowned self] (state) in
             if case .searching(_) = state {
                 gifCollectionView.scrollToItem(at: .init(row: 0, section: 0), at: .top, animated: false)
             }
@@ -128,11 +105,11 @@ final class GiphySearchVC: UIViewController {
             .rx
             .text
             .orEmpty
-            .bind(to: viewModel.query)
+            .bind(to: viewModel.queryInput)
             .disposed(by: bag)
         
         gifCollectionView.rx.willDisplayCell.map { $1 }.skip(1)
-            .bind(to: viewModel.indexPathWillBeShown)
+            .bind(to: viewModel.indexPathWillBeShownInput)
             .disposed(by: bag)
     }
     
@@ -180,16 +157,11 @@ final class GiphySearchVC: UIViewController {
         gifCollectionView.register(LoadingMoreGiphyCell.self,
                                    forCellWithReuseIdentifier: LoadingMoreGiphyCell.reuseIdentifier)
     }
-    
-    override func viewWillLayoutSubviews() {
-        super.viewWillLayoutSubviews()
-        gifCollectionView.collectionViewLayout.invalidateLayout()
-    }
 }
 
 extension GiphySearchVC: CHTCollectionViewDelegateWaterfallLayout  {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        switch viewModel.stateRelay.value {
+        switch viewModel.getCurrentState() {
         case .loadingMore(let vms, _), .found(let vms):
             if indexPath.section == GiphyColletionViewSection.loading.rawValue {
                 return CGSize(width: collectionView.bounds.width, height: 44)
@@ -202,7 +174,7 @@ extension GiphySearchVC: CHTCollectionViewDelegateWaterfallLayout  {
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, columnCountFor section: Int) -> Int {
-        switch viewModel.stateRelay.value {
+        switch viewModel.getCurrentState() {
         case .found(_), .loadingMore(_, _):
             return section == GiphyColletionViewSection.giphyList.rawValue ? 2 : 1
         default:
@@ -214,4 +186,24 @@ extension GiphySearchVC: CHTCollectionViewDelegateWaterfallLayout  {
 fileprivate enum GiphyColletionViewSection: Int {
     case giphyList = 0
     case loading
+}
+
+fileprivate typealias GiphySection = AnimatableSectionModel<String, CellViewModel>
+
+fileprivate enum CellViewModel: Equatable, IdentifiableType {
+    case found(GiphyCellVM)
+    case notFound(NotFoundGiphyCellVM)
+    case initial(InitialGiphyCellVM)
+    case searching(SearchingGiphyCellVM)
+    case loadingMore(LoadingMoreCellVM)
+    
+    var identity: String {
+        switch self {
+            case .found(let vm): return vm.identity
+            case .notFound(let vm): return vm.identity
+            case .initial(let vm): return vm.identity
+            case .searching(let vm): return vm.identity
+            case .loadingMore(let vm): return vm.identity
+        }
+    }
 }

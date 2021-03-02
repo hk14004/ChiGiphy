@@ -18,30 +18,27 @@ enum GiphySearchState: Equatable {
     case loadingMore([GiphyCellVM], LoadingMoreCellVM)
 }
 
-class GiphySearchVM {
+class GiphySearchVM: GiphySearchVMProtocol {
     
-    /// Gif page size
+    // MARK: Contants
+    
     let pageSize = 20
     
-    /// Load new page when x elemnts left to display
     let loadWhenItemsLeft = 0
     
-    /// Query input interval
     let queryDebounce = 0.5
-
-    private(set) var indexPathWillBeShown = PublishRelay<IndexPath>()
     
-    private(set) lazy var stateRelay: BehaviorRelay<GiphySearchState> = {
-        let relay = BehaviorRelay<GiphySearchState>(value: .initial(InitialGiphyCellVM()))
-        Observable.merge(
-            respondToSearchInput(),
-            respondToLoadMoreScrollInput()
-        )
-        .bind(to: relay).disposed(by: bag)
-        return relay
-    }()
+    // MARK: Input
+        
+    @VMInput var indexPathWillBeShownInput: AnyObserver<IndexPath>
     
-    private(set) var query = BehaviorRelay<String>(value: "")
+    @VMInput var queryInput: AnyObserver<String>
+    
+    // MARK: Output
+    
+    @VMOutput(.initial(InitialGiphyCellVM())) var stateOutput: Observable<GiphySearchState>
+    
+    // MARK: Private
     
     private let giphyService: GiphyServiceProtocol
     
@@ -57,27 +54,40 @@ class GiphySearchVM {
 
     init(giphyService: GiphyServiceProtocol = GiphyService()) {
         self.giphyService = giphyService
+        
+        setup()
     }
     
     // MARK: Methods
     
+    private func setup() {
+        Observable.merge(
+            respondToSearchInput(),
+            respondToLoadMoreScrollInput()
+        )
+        .bind(to: $stateOutput).disposed(by: bag)
+    }
+    
     private func respondToSearchInput() -> Observable<GiphySearchState> {
-        query
+        $queryInput
             .filter { !$0.isEmpty }
             .distinctUntilChanged()
             .debounce(queryDebounce, scheduler: DriverSharingStrategy.scheduler)
             .flatMapLatest { [unowned self] term -> Observable<GiphySearchState> in
-               performSearchRequest(with: term)
+                performSearchRequest(with: term)
             }
     }
     
     private func respondToLoadMoreScrollInput() -> Observable<GiphySearchState> {
-        indexPathWillBeShown
-            .map { self.shouldLoadNextPage(indexPath: $0) }
+        $indexPathWillBeShownInput
+            .map { [unowned self] in
+                shouldLoadNextPage(indexPath: $0)
+            }
             .distinctUntilChanged()
             .filter { $0 }
-            .flatMapLatest { [unowned self]  _ in
-                performLoadMoreRequest()
+            .withLatestFrom($queryInput) { $1 } // Returns query
+            .flatMapLatest { [unowned self]  query in
+                performLoadMoreRequest(with: query)
             }
     }
     
@@ -89,7 +99,7 @@ class GiphySearchVM {
 
             // Perform query
             observer.onNext(.searching(SearchingGiphyCellVM()))
-            giphyService.search(text: term, offset: 0, limit: self.pageSize)
+            giphyService.search(text: term, offset: 0, limit: pageSize)
                 .asObservable()
                 .retry(.delayed(maxCount: UInt.max, time: 3))
                 .subscribe { (items) in
@@ -110,14 +120,14 @@ class GiphySearchVM {
         }
     }
     
-    private func performLoadMoreRequest() -> Observable<GiphySearchState> {
+    private func performLoadMoreRequest(with term: String) -> Observable<GiphySearchState> {
         Observable<GiphySearchState>.create { [unowned self] (observer) -> Disposable in
             // Dispose of pending requests
             loadMoreDisposables = DisposeBag()
 
             // Perform load more
             observer.onNext(.loadingMore(fetchedItemVMs.value, LoadingMoreCellVM()))
-            giphyService.search(text: query.value, offset: fetchedItemVMs.value.count + 1, limit: self.pageSize)
+            giphyService.search(text: term, offset: fetchedItemVMs.value.count + 1, limit: pageSize)
                 .asObservable()
                 .retry(.delayed(maxCount: UInt.max, time: 3))
                 .subscribe { (items) in
@@ -139,5 +149,9 @@ class GiphySearchVM {
             return false
         }
         return fetchedItemVMs.value.count - (indexPath.row + 1)  <= loadWhenItemsLeft
+    }
+    
+    func getCurrentState() -> GiphySearchState {
+        $stateOutput.value
     }
 }
