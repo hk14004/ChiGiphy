@@ -44,11 +44,12 @@ class GiphySearchVM: GiphySearchVMProtocol {
     
     private var bag = DisposeBag()
     
-    private(set) var fetchedItemVMs = BehaviorRelay<[GiphyCellVM]>(value: [])
+    private var fetchedItemVMs = BehaviorRelay<[GiphyCellVM]>(value: [])
     
-    private(set) var loadMoreDisposables = DisposeBag()
+    private var searchDisposable: Disposable?
     
-    private(set) var searchDisposables = DisposeBag()
+    private var loadMoreDisposable: Disposable?
+
     
     // MARK: Init
 
@@ -94,12 +95,12 @@ class GiphySearchVM: GiphySearchVMProtocol {
     private func performSearchRequest(with term: String) -> Observable<GiphySearchState> {
         Observable<GiphySearchState>.create { [unowned self] (observer) -> Disposable in
             // Dispose of pending requests
-            loadMoreDisposables = DisposeBag()
-            searchDisposables = DisposeBag()
-
+            searchDisposable?.dispose()
+            loadMoreDisposable?.dispose()
+            
             // Perform query
             observer.onNext(.searching(SearchingGiphyCellVM()))
-            giphyService.search(text: term, offset: 0, limit: pageSize)
+            searchDisposable = giphyService.search(text: term, offset: 0, limit: pageSize)
                 .asObservable()
                 .retry(.delayed(maxCount: UInt.max, time: 3))
                 .subscribe { (items) in
@@ -114,7 +115,7 @@ class GiphySearchVM: GiphySearchVMProtocol {
                     print("Search errored out:", error.localizedDescription)
                 } onDisposed: {
                   print("Search disposed")
-                }.disposed(by: searchDisposables)
+                }
 
             return Disposables.create()
         }
@@ -123,11 +124,11 @@ class GiphySearchVM: GiphySearchVMProtocol {
     private func performLoadMoreRequest(with term: String) -> Observable<GiphySearchState> {
         Observable<GiphySearchState>.create { [unowned self] (observer) -> Disposable in
             // Dispose of pending requests
-            loadMoreDisposables = DisposeBag()
+            loadMoreDisposable?.dispose()
 
             // Perform load more
             observer.onNext(.loadingMore(fetchedItemVMs.value, LoadingMoreCellVM()))
-            giphyService.search(text: term, offset: fetchedItemVMs.value.count + 1, limit: pageSize)
+            loadMoreDisposable = giphyService.search(text: term, offset: fetchedItemVMs.value.count + 1, limit: pageSize)
                 .asObservable()
                 .retry(.delayed(maxCount: UInt.max, time: 3))
                 .subscribe { (items) in
@@ -138,7 +139,7 @@ class GiphySearchVM: GiphySearchVMProtocol {
                     print("Load more errored out:", error.localizedDescription)
                 } onDisposed: {
                   print("Load more disposed")
-                }.disposed(by: loadMoreDisposables)
+                }
 
             return Disposables.create()
         }
