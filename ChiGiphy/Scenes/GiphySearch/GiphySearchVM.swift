@@ -24,7 +24,7 @@ class GiphySearchVM: GiphySearchVMProtocol {
     
     let pageSize = 20
     
-    let loadWhenItemsLeft = 0
+    let loadWhenItemsLeft = 10
     
     let queryDebounce = 0.5
     
