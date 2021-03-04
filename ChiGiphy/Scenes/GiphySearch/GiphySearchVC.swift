@@ -10,7 +10,6 @@ import RxDataSources
 import RxSwift
 import RxCocoa
 import Cartography
-import SCLAlertView
 
 final class GiphySearchVC: UIViewController {
     

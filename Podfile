@@ -13,7 +13,7 @@ target 'ChiGiphy' do
   pod 'Gifu'
   pod 'Cartography', '~> 3.0'
   pod 'NVActivityIndicatorView'
-  pod 'SCLAlertView'
+  pod 'Alamofire'
   pod 'RxSwiftExt'
   
   target 'ChiGiphyTests' do

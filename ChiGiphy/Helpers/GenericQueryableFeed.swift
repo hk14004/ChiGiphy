@@ -1,9 +1,8 @@
 //
-//  QueryableFeed.swift
-//  ChiliGiphy
+//  GenericQueryableFeed.swift
+//  ChiGiphy
 //
-//  Created by Hardijs on 17/02/2021.
-//  Copyright © 2021 Chili Labs. All rights reserved.
+//  Created by Hardijs on 04/03/2021.
 //
 
 import Foundation
@@ -11,7 +10,7 @@ import RxSwift
 import RxCocoa
 import RxSwiftExt
 
-protocol QueryableFeedProtocol {
+protocol GenericQueryableFeed {
     associatedtype Item
 
     var pageSize: Int { get }
@@ -19,35 +18,6 @@ protocol QueryableFeedProtocol {
     
     func search(query: String) -> Observable<[Item]>
     func getNextPage() -> Observable<[Item]>
-}
-
-class GiphyQueryableFeed: QueryableFeedProtocol {
-    var feedSize: Int = 0
-
-    let pageSize: Int
-    
-    var latestQuery: String?
-    
-    private let service: GiphyServiceProtocol
-
-    init(service: GiphyServiceProtocol = GiphyService(), pageSize: Int = 20) {
-        self.service = service
-        self.pageSize = pageSize
-    }
-
-    func search(query: String) -> Observable<[GiphyItem]> {
-        service.search(text: query, offset: 0, limit: pageSize).do(onNext: { [unowned self] items in
-            latestQuery = query
-            feedSize = items.count
-        })
-    }
-
-    func getNextPage() -> Observable<[GiphyItem]> {
-        guard let query = latestQuery else { return .empty() }
-        return service.search(text: query, offset: feedSize + 1, limit: pageSize).do(onNext: { [unowned self] items in
-            feedSize += items.count
-        })
-    }
 }
 
 protocol QueryableFeedManagerInput {
@@ -128,7 +98,7 @@ struct QueryableFeedManager<Item: Equatable>: QueryableFeedManagerType {
             accumulatedItems.accept(results)
         }).share()
         
-        let loadMoreResults = getNextPageTriggerInput.asObservable().flatMapLatest { _  -> Observable<[Item]> in
+        let loadMoreResults = getNextPageTriggerInput.asObservable().flatMapLatest { _ -> Observable<[Item]> in
             let request = feedProvider.getNextPage()
             switch onPageError {
             case .retry(let retryBehaviour):
@@ -163,7 +133,7 @@ struct QueryableFeedManager<Item: Equatable>: QueryableFeedManagerType {
     }
 }
 
-class AnyQueryableFeed<Item>: QueryableFeedProtocol {
+class AnyQueryableFeed<Item>: GenericQueryableFeed {
     
     // TODO: Type erese properties
     
@@ -175,7 +145,7 @@ class AnyQueryableFeed<Item>: QueryableFeedProtocol {
     
     private let _getNextPage: () -> Observable<[Item]>
 
-    init<Base: QueryableFeedProtocol>(_ base: Base) where Item == Base.Item {
+    init<Base: GenericQueryableFeed>(_ base: Base) where Item == Base.Item {
         _search = base.search
         _getNextPage = base.getNextPage
     }

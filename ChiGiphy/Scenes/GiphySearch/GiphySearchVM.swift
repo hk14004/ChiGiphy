@@ -10,14 +10,6 @@ import RxSwift
 import RxCocoa
 import RxSwiftExt
 
-enum GiphySearchState: Equatable {
-    case found([GiphyCellVM])
-    case notFound(NotFoundGiphyCellVM)
-    case initial(InitialGiphyCellVM)
-    case searching(SearchingGiphyCellVM)
-    case loadingMore([GiphyCellVM], LoadingMoreCellVM)
-}
-
 class GiphySearchVM: GiphySearchVMProtocol {
     
     // MARK: Contants
@@ -106,3 +98,39 @@ class GiphySearchVM: GiphySearchVMProtocol {
         $stateOutput.value
     }
 }
+
+enum GiphySearchState: Equatable {
+    case found([GiphyCellVM])
+    case notFound(NotFoundGiphyCellVM)
+    case initial(InitialGiphyCellVM)
+    case searching(SearchingGiphyCellVM)
+    case loadingMore([GiphyCellVM], LoadingMoreCellVM)
+}
+
+protocol GiphySearchVMProtocol {
+
+    // MARK: Vars
+    
+    /// Load new page when x elements left to display
+    var loadWhenItemsLeft: Int { get }
+    
+    /// Query input interval
+    var queryDebounce: Double { get }
+    
+    // MARK: Input
+
+    var indexPathWillBeShownInput: AnyObserver<IndexPath> { get }
+    
+    var queryInput: AnyObserver<String> { get }
+    
+    // MARK: Output
+    
+    var stateOutput: Observable<GiphySearchState> { get }
+    
+    var errorOutput: Observable<Error> { get }
+    
+    // MARK: Methods
+    
+    func getCurrentState() -> GiphySearchState
+}
+
