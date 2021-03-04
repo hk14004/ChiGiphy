@@ -28,7 +28,7 @@ class GiphyCellVM: GiphyCellVMProtocol{
     
     // MARK: Output
     
-    @VMOutput(.initial) var state: Observable<GiphyCellVMState>
+    @VMProperty(.initial) var state: Observable<GiphyCellVMState>
     
     // MARK: Vars
     

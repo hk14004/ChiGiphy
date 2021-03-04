@@ -9,7 +9,7 @@ import Foundation
 import RxSwift
 
 protocol GiphyServiceProtocol {
-    func search(text: String, offset: Int, limit: Int) -> Single<[GiphyItem]>
+    func search(text: String, offset: Int, limit: Int) -> Observable<[GiphyItem]>
     func downloadGif(url: URL) -> Observable<Data>
 }
 
@@ -21,7 +21,7 @@ class GiphyService: GiphyServiceProtocol {
     
     // MARK: Methods
     
-    func search(text: String, offset: Int, limit: Int) -> Single<[GiphyItem]> {
+    func search(text: String, offset: Int, limit: Int) -> Observable<[GiphyItem]> {
         let url = URL(string: "http://api.giphy.com/v1/gifs/search")!
         var request = URLRequest(url: url)
         let keyQueryItem = URLQueryItem(name: "api_key", value: apiKey)
@@ -42,7 +42,6 @@ class GiphyService: GiphyServiceProtocol {
         return URLSession.shared.rx
             .decodable(request: request, type: GiphySearchResponse.self)
             .map {$0.data.elements}
-            .asSingle()
     }
     
     func downloadGif(url: URL) -> Observable<Data> {

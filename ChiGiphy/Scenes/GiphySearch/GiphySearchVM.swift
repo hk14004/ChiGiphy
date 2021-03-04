@@ -22,8 +22,6 @@ class GiphySearchVM: GiphySearchVMProtocol {
     
     // MARK: Contants
     
-    let pageSize = 20
-    
     let loadWhenItemsLeft = 10
     
     let queryDebounce = 0.5
@@ -36,120 +34,71 @@ class GiphySearchVM: GiphySearchVMProtocol {
     
     // MARK: Output
     
-    @VMOutput(.initial(InitialGiphyCellVM())) var stateOutput: Observable<GiphySearchState>
+    @VMProperty(.initial(.init())) var stateOutput: Observable<GiphySearchState>
+    
+    @VMOutput var errorOutput: Observable<Error>
     
     // MARK: Private
-    
-    private let giphyService: GiphyServiceProtocol
+        
+    private let feedManger: QueryableFeedManager<GiphyItem>
     
     private var bag = DisposeBag()
     
-    private var fetchedItemVMs = BehaviorRelay<[GiphyCellVM]>(value: [])
-    
-    private var searchDisposable: Disposable?
-    
-    private var loadMoreDisposable: Disposable?
-
-    
     // MARK: Init
 
-    init(giphyService: GiphyServiceProtocol = GiphyService()) {
-        self.giphyService = giphyService
-        
+    init() {
+        self.feedManger = QueryableFeedManager<GiphyItem>(feedProvider: AnyQueryableFeed<GiphyItem>(GiphyQueryableFeed()),
+                                                          onPageError: .retry(.delayed(maxCount: UInt.max, time: 3)))
         setup()
     }
     
     // MARK: Methods
     
     private func setup() {
-        Observable.merge(
-            respondToSearchInput(),
-            respondToLoadMoreScrollInput()
-        )
-        .bind(to: $stateOutput).disposed(by: bag)
-    }
-    
-    private func respondToSearchInput() -> Observable<GiphySearchState> {
+        // Respond to search -  input
         $queryInput
             .filter { !$0.isEmpty }
             .distinctUntilChanged()
             .debounce(queryDebounce, scheduler: DriverSharingStrategy.scheduler)
-            .flatMapLatest { [unowned self] term -> Observable<GiphySearchState> in
-                performSearchRequest(with: term)
-            }
-    }
-    
-    private func respondToLoadMoreScrollInput() -> Observable<GiphySearchState> {
+            .bind(to: feedManger.queryInput)
+            .disposed(by: bag)
+        
+        // Respond to search -  output
+        feedManger.performingQueryOutput.filter{$0}.map { _ in .searching(.init()) }
+            .bind(to: $stateOutput)
+            .disposed(by: bag)
+        
+        let gifCellsOutput = feedManger.itemsOutput.skip(1).map { gifModels in gifModels.map { GiphyCellVM(item: $0) }}.share().catchErrorJustReturn([])
+            
+        gifCellsOutput.filter{$0.isEmpty}.map { _ in .notFound(.init())}
+            .bind(to: $stateOutput)
+            .disposed(by: bag)
+        
+        gifCellsOutput.filter{!$0.isEmpty}.map { .found($0) }
+            .bind(to: $stateOutput)
+            .disposed(by: bag)
+        
+        // Respond to load more -  input
         $indexPathWillBeShownInput
-            .map { [unowned self] in
-                shouldLoadNextPage(indexPath: $0)
+            .withLatestFrom(gifCellsOutput) { indexPath, cells in
+                // Logic for calculating when to load more items
+                guard !cells.isEmpty else { return false }
+                return cells.count - (indexPath.row + 1)  <= self.loadWhenItemsLeft
             }
             .distinctUntilChanged()
             .filter { $0 }
-            .withLatestFrom($queryInput) { $1 } // Returns query
-            .flatMapLatest { [unowned self]  query in
-                performLoadMoreRequest(with: query)
-            }
-    }
-    
-    private func performSearchRequest(with term: String) -> Observable<GiphySearchState> {
-        Observable<GiphySearchState>.create { [unowned self] (observer) -> Disposable in
-            // Dispose of pending requests
-            searchDisposable?.dispose()
-            loadMoreDisposable?.dispose()
-            
-            // Perform query
-            observer.onNext(.searching(SearchingGiphyCellVM()))
-            searchDisposable = giphyService.search(text: term, offset: 0, limit: pageSize)
-                .asObservable()
-                .retry(.delayed(maxCount: UInt.max, time: 3))
-                .subscribe { (items) in
-                    guard !items.isEmpty else {
-                        observer.onNext(.notFound(NotFoundGiphyCellVM()))
-                        return
-                    }
-                    let fetched = items.map { GiphyCellVM(item: $0) }
-                    fetchedItemVMs.accept(fetched)
-                    observer.onNext(.found(fetched))
-                } onError: { (error) in
-                    print("Search errored out:", error.localizedDescription)
-                } onDisposed: {
-                  print("Search disposed")
-                }
+            .map { _ in }
+            .bind(to: feedManger.getNextPageTriggerInput)
+            .disposed(by: bag)
+        
+        // Respond to load more - output
+        feedManger.performingGetNextPageOutput.filter{$0}.withLatestFrom(gifCellsOutput)
+            .map { gifCells in  .loadingMore(gifCells, .init()) }
+            .bind(to: $stateOutput)
+            .disposed(by: bag)
+        
+        feedManger.errorOutput.bind(to: $errorOutput).disposed(by: bag)
 
-            return Disposables.create()
-        }
-    }
-    
-    private func performLoadMoreRequest(with term: String) -> Observable<GiphySearchState> {
-        Observable<GiphySearchState>.create { [unowned self] (observer) -> Disposable in
-            // Dispose of pending requests
-            loadMoreDisposable?.dispose()
-
-            // Perform load more
-            observer.onNext(.loadingMore(fetchedItemVMs.value, LoadingMoreCellVM()))
-            loadMoreDisposable = giphyService.search(text: term, offset: fetchedItemVMs.value.count + 1, limit: pageSize)
-                .asObservable()
-                .retry(.delayed(maxCount: UInt.max, time: 3))
-                .subscribe { (items) in
-                    let fetched = items.map { GiphyCellVM(item: $0) }
-                    fetchedItemVMs.accept(fetchedItemVMs.value + fetched)
-                    observer.onNext(.found(fetchedItemVMs.value))
-                } onError: { (error) in
-                    print("Load more errored out:", error.localizedDescription)
-                } onDisposed: {
-                  print("Load more disposed")
-                }
-
-            return Disposables.create()
-        }
-    }
-    
-    func shouldLoadNextPage(indexPath: IndexPath) -> Bool {
-        if fetchedItemVMs.value.isEmpty {
-            return false
-        }
-        return fetchedItemVMs.value.count - (indexPath.row + 1)  <= loadWhenItemsLeft
     }
     
     func getCurrentState() -> GiphySearchState {

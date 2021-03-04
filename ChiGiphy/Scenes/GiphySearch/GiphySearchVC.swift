@@ -111,6 +111,10 @@ final class GiphySearchVC: UIViewController {
         gifCollectionView.rx.willDisplayCell.map { $1 }.skip(1)
             .bind(to: viewModel.indexPathWillBeShownInput)
             .disposed(by: bag)
+        
+        viewModel.errorOutput.observeOn(MainScheduler.instance).subscribe(onNext: { error in
+            InfoView.showIn(viewController: self, message: error.localizedDescription)
+        }).disposed(by: bag)
     }
     
     private func configureSearchBar() {

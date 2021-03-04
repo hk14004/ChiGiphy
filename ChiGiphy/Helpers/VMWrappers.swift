@@ -24,7 +24,7 @@ struct VMInput<T> {
 }
 
 @propertyWrapper
-struct VMOutput<T> {
+struct VMProperty<T> {
 
     private let relay: BehaviorRelay<T>
 
@@ -38,5 +38,19 @@ struct VMOutput<T> {
 
     var projectedValue: BehaviorRelay<T> {
         return relay
+    }
+}
+
+@propertyWrapper
+struct VMOutput<T> {
+
+    private let subject = PublishSubject<T>()
+
+    var wrappedValue: Observable<T> {
+        return subject.asObservable()
+    }
+
+    var projectedValue: PublishSubject<T> {
+        return subject
     }
 }

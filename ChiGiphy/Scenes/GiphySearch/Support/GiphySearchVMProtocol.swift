@@ -13,9 +13,6 @@ protocol GiphySearchVMProtocol {
 
     //MARK: Vars
     
-    /// Gif page size
-    var pageSize: Int { get }
-    
     /// Load new page when x elements left to display
     var loadWhenItemsLeft: Int { get }
     
@@ -30,6 +27,8 @@ protocol GiphySearchVMProtocol {
     // MARK: Output
     
     var stateOutput: Observable<GiphySearchState> { get }
+    
+    var errorOutput: Observable<Error> { get }
     
     // MARK: Methods
     
