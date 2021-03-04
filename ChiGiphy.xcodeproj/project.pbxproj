@@ -33,9 +33,6 @@
 		D4DBF28925EFB8C500269DEB /* QueryableFeedProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4DBF28825EFB8C500269DEB /* QueryableFeedProtocol.swift */; };
 		D4E055C125ECFC190077550F /* Decodable+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4E055C025ECFC190077550F /* Decodable+Extensions.swift */; };
 		D4E055C725ECFD4F0077550F /* GiphySearchResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4E055C625ECFD4F0077550F /* GiphySearchResponse.swift */; };
-		D4ECAD1525B5E71700E0839B /* GenericSearchVM.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4ECAD1425B5E71700E0839B /* GenericSearchVM.swift */; };
-		D4ECAD1825B5E72100E0839B /* GenericSearchVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4ECAD1725B5E72100E0839B /* GenericSearchVC.swift */; };
-		D4ECAD1B25B5EAE800E0839B /* SearchError.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4ECAD1A25B5EAE800E0839B /* SearchError.swift */; };
 		D4F215D825CEC29A00D555A6 /* GiphyCellVM.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4F215D725CEC29A00D555A6 /* GiphyCellVM.swift */; };
 		D4F7546825CEC81A008E3CA7 /* SearchingGiphyCellVM.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4F7546725CEC81A008E3CA7 /* SearchingGiphyCellVM.swift */; };
 		D4F7546C25CEC8CE008E3CA7 /* SearchingGiphyCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4F7546B25CEC8CE008E3CA7 /* SearchingGiphyCollectionViewCell.swift */; };
@@ -92,9 +89,6 @@
 		D4DBF28825EFB8C500269DEB /* QueryableFeedProtocol.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QueryableFeedProtocol.swift; sourceTree = "<group>"; };
 		D4E055C025ECFC190077550F /* Decodable+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Decodable+Extensions.swift"; sourceTree = "<group>"; };
 		D4E055C625ECFD4F0077550F /* GiphySearchResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiphySearchResponse.swift; sourceTree = "<group>"; };
-		D4ECAD1425B5E71700E0839B /* GenericSearchVM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericSearchVM.swift; sourceTree = "<group>"; };
-		D4ECAD1725B5E72100E0839B /* GenericSearchVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericSearchVC.swift; sourceTree = "<group>"; };
-		D4ECAD1A25B5EAE800E0839B /* SearchError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchError.swift; sourceTree = "<group>"; };
 		D4F215D725CEC29A00D555A6 /* GiphyCellVM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiphyCellVM.swift; sourceTree = "<group>"; };
 		D4F7546725CEC81A008E3CA7 /* SearchingGiphyCellVM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchingGiphyCellVM.swift; sourceTree = "<group>"; };
 		D4F7546B25CEC8CE008E3CA7 /* SearchingGiphyCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchingGiphyCollectionViewCell.swift; sourceTree = "<group>"; };
@@ -278,7 +272,6 @@
 				D47A7E6325F0E01500B4A796 /* UI */,
 				D4DBF28825EFB8C500269DEB /* QueryableFeedProtocol.swift */,
 				D4428C7625C0AB7F0073F444 /* Extensions */,
-				D4ECAD1325B5E6BC00E0839B /* GenericSearch */,
 				D4D4670725ACF16900BCFE44 /* Storage */,
 				D4D4671325ACF16900BCFE44 /* CoordinatorProtocol.swift */,
 				D4D4670625ACF16900BCFE44 /* ReusableViewProtocol.swift */,
@@ -328,16 +321,6 @@
 				D4E055C625ECFD4F0077550F /* GiphySearchResponse.swift */,
 			);
 			path = Responses;
-			sourceTree = "<group>";
-		};
-		D4ECAD1325B5E6BC00E0839B /* GenericSearch */ = {
-			isa = PBXGroup;
-			children = (
-				D4ECAD1425B5E71700E0839B /* GenericSearchVM.swift */,
-				D4ECAD1725B5E72100E0839B /* GenericSearchVC.swift */,
-				D4ECAD1A25B5EAE800E0839B /* SearchError.swift */,
-			);
-			path = GenericSearch;
 			sourceTree = "<group>";
 		};
 		D4F215D525CEC0A900D555A6 /* Cells */ = {
@@ -545,14 +528,12 @@
 			files = (
 				D4CB9C1925ED374200D67B6A /* VMWrappers.swift in Sources */,
 				D4F7548425CECCC7008E3CA7 /* LoadingMoreGiphyCollectionViewCell.swift in Sources */,
-				D4ECAD1825B5E72100E0839B /* GenericSearchVC.swift in Sources */,
 				D4F7547025CECA2A008E3CA7 /* InitialGiphyCellVM.swift in Sources */,
 				D4E055C725ECFD4F0077550F /* GiphySearchResponse.swift in Sources */,
 				D4A8B6C925AC9E32007B5F49 /* URLSession+Rx.swift in Sources */,
 				D4F7548025CECC64008E3CA7 /* NotFoundGiphyCollectionViewCell.swift in Sources */,
 				D443204525ABCED5000DA72F /* GiphyItem.swift in Sources */,
 				D4D4671E25ACF16A00BCFE44 /* CoordinatorProtocol.swift in Sources */,
-				D4ECAD1525B5E71700E0839B /* GenericSearchVM.swift in Sources */,
 				D4B0AED925BF59090030B6AB /* Waterfall.swift in Sources */,
 				D4DBF28925EFB8C500269DEB /* QueryableFeedProtocol.swift in Sources */,
 				D452B66025B849B60025B2A6 /* UIColor+Extensions.swift in Sources */,
@@ -566,7 +547,6 @@
 				D4462FAE25C0D77B00E6DCA4 /* GiphySearchVMProtocol.swift in Sources */,
 				D446C46C25A8855400098E58 /* SceneDelegate.swift in Sources */,
 				D4F215D825CEC29A00D555A6 /* GiphyCellVM.swift in Sources */,
-				D4ECAD1B25B5EAE800E0839B /* SearchError.swift in Sources */,
 				D4D4671525ACF16A00BCFE44 /* ReusableViewProtocol.swift in Sources */,
 				D4F7547C25CECBEA008E3CA7 /* InitialGiphyCollectionViewCell.swift in Sources */,
 				D4F7546825CEC81A008E3CA7 /* SearchingGiphyCellVM.swift in Sources */,

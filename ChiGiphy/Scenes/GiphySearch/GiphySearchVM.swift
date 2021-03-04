@@ -54,6 +54,7 @@ class GiphySearchVM: GiphySearchVMProtocol {
     
     // MARK: Methods
     
+    // TODO: State machine would probably be better
     private func setup() {
         // Respond to search -  input
         $queryInput
@@ -68,7 +69,7 @@ class GiphySearchVM: GiphySearchVMProtocol {
             .bind(to: $stateOutput)
             .disposed(by: bag)
         
-        let gifCellsOutput = feedManger.itemsOutput.skip(1).map { gifModels in gifModels.map { GiphyCellVM(item: $0) }}.share().catchErrorJustReturn([])
+        let gifCellsOutput = feedManger.itemsOutput.skip(1).map { gifModels in gifModels.map { GiphyCellVM(item: $0) }}.share()
             
         gifCellsOutput.filter{$0.isEmpty}.map { _ in .notFound(.init())}
             .bind(to: $stateOutput)
