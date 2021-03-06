@@ -53,8 +53,13 @@ class GiphySearchVM: GiphySearchVMProtocol {
     
     // MARK: Methods
     
-    // TODO: State machine would probably be better
     private func setup() {
+        bindFeedProvider()
+        bindErrors()
+        bindNetworkStatus()
+    }
+    
+    private func bindFeedProvider() {
         // Respond to search -  input
         $queryInput
             .filter { !$0.isEmpty }
@@ -96,10 +101,15 @@ class GiphySearchVM: GiphySearchVMProtocol {
             .map { gifCells in  .loadingMore(gifCells, .init()) }
             .bind(to: $stateOutput)
             .disposed(by: bag)
-        
+    }
+    
+    private func bindErrors() {
         feedManger.errorOutput.bind(to: $errorOutput).disposed(by: bag)
-
+    }
+    
+    private func bindNetworkStatus() {
         reachabilityManager.reachability.rx.isReachable.bind(to: $isRechableOutput).disposed(by: bag)
+
     }
     
     func getCurrentState() -> GiphySearchState {
