@@ -13,7 +13,7 @@ import RxReachability
 import Reachability
 
 class GiphySearchVM: GiphySearchVMProtocol {
-    
+
     // MARK: Contants
     
     let loadWhenItemsLeft = 10
@@ -31,6 +31,8 @@ class GiphySearchVM: GiphySearchVMProtocol {
     @VMProperty(.initial(.init())) var stateOutput: Observable<GiphySearchState>
     
     @VMOutput var errorOutput: Observable<Error>
+    
+    @VMOutput var isRechableOutput: Observable<Bool>
     
     // MARK: Private
         
@@ -97,9 +99,7 @@ class GiphySearchVM: GiphySearchVMProtocol {
         
         feedManger.errorOutput.bind(to: $errorOutput).disposed(by: bag)
 
-        reachabilityManager.reachability?.rx.isDisconnected.map { _ -> Error in
-            NSError(domain: "Custom", code: 0, userInfo: nil)
-        }.bind(to: $errorOutput).disposed(by: bag)
+        reachabilityManager.reachability.rx.isReachable.bind(to: $isRechableOutput).disposed(by: bag)
     }
     
     func getCurrentState() -> GiphySearchState {
@@ -136,6 +136,8 @@ protocol GiphySearchVMProtocol {
     var stateOutput: Observable<GiphySearchState> { get }
     
     var errorOutput: Observable<Error> { get }
+    
+    var isRechableOutput: Observable<Bool> { get }
     
     // MARK: Methods
     

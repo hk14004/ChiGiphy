@@ -100,12 +100,7 @@ final class GiphySearchVC: UIViewController {
             }
         }).disposed(by: bag)
         
-        searchController.searchBar
-            .rx
-            .text
-            .orEmpty
-            .bind(to: viewModel.queryInput)
-            .disposed(by: bag)
+        searchController.searchBar.rx.text.orEmpty.bind(to: viewModel.queryInput).disposed(by: bag)
         
         gifCollectionView.rx.willDisplayCell.map { $1 }.skip(1)
             .bind(to: viewModel.indexPathWillBeShownInput)
@@ -113,6 +108,15 @@ final class GiphySearchVC: UIViewController {
         
         viewModel.errorOutput.observeOn(MainScheduler.instance).subscribe(onNext: { error in
             InfoView.showIn(viewController: self, message: error.localizedDescription)
+        }).disposed(by: bag)
+        
+        viewModel.isRechableOutput.observeOn(MainScheduler.instance).subscribe(onNext: { isReachable in
+            if isReachable {
+                InfoView.sharedView?.fadeOut()
+            } else {
+                InfoView.showIn(viewController: self, message: ReachabilityError.disconnected.localizedDescription)
+            }
+            
         }).disposed(by: bag)
     }
     
@@ -124,6 +128,7 @@ final class GiphySearchVC: UIViewController {
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.searchBar.placeholder = NSLocalizedString("Search", comment: "")
         navigationItem.searchController = searchController
+        navigationController?.navigationBar.isTranslucent = true
     }
     
     private func setupCollectionViewLayout() {

@@ -33,7 +33,7 @@ class InfoView: UIView {
   @IBOutlet weak var textLabel: UILabel!
   @IBOutlet weak var closeButton: UIButton!
 
-  private static var sharedView: InfoView!
+    static var sharedView: InfoView?
 
   static func loadFromNib() -> InfoView {
     let nibName = "\(self)".split{$0 == "."}.map(String.init).last!
@@ -52,24 +52,22 @@ class InfoView: UIView {
     if sharedView == nil {
       sharedView = loadFromNib()
 
-      sharedView.layer.masksToBounds = false
-      sharedView.layer.shadowColor = UIColor.darkGray.cgColor
-      sharedView.layer.shadowOpacity = 1
-      sharedView.layer.shadowOffset = CGSize(width: 0, height: 3)
+        sharedView?.layer.masksToBounds = false
+        sharedView?.layer.shadowColor = UIColor.darkGray.cgColor
+        sharedView?.layer.shadowOpacity = 1
+        sharedView?.layer.shadowOffset = CGSize(width: 0, height: 3)
     }
+    guard let sharedView = sharedView else { return }
 
     sharedView.textLabel.text = message
 
-    if sharedView?.superview == nil {
+    if sharedView.superview == nil {
       let y = displayVC.view.frame.height - sharedView.frame.size.height - 12
       sharedView.frame = CGRect(x: 12, y: y, width: displayVC.view.frame.size.width - 24, height: sharedView.frame.size.height)
       sharedView.alpha = 0.0
 
       displayVC.view.addSubview(sharedView)
       sharedView.fadeIn()
-
-      // this call needs to be counter balanced on fadeOut [1]
-      //sharedView.perform(#selector(fadeOut), with: nil, afterDelay: 3.0)
     }
   }
 
