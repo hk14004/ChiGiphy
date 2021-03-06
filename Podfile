@@ -15,6 +15,7 @@ target 'ChiGiphy' do
   pod 'NVActivityIndicatorView'
   pod 'Alamofire'
   pod 'RxSwiftExt'
+  pod 'RxReachability'
   
   target 'ChiGiphyTests' do
       inherit! :search_paths

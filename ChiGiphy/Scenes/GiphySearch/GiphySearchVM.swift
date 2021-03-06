@@ -9,6 +9,8 @@ import Foundation
 import RxSwift
 import RxCocoa
 import RxSwiftExt
+import RxReachability
+import Reachability
 
 class GiphySearchVM: GiphySearchVMProtocol {
     
@@ -36,11 +38,14 @@ class GiphySearchVM: GiphySearchVMProtocol {
     
     private var bag = DisposeBag()
     
+    private let reachabilityManager: ReachabilityManagerProtocol
+    
     // MARK: Init
 
-    init() {
+    init(reachabilityManager: ReachabilityManagerProtocol = ReachabilityManager.shared) {
         self.feedManger = QueryableFeedManager<GiphyItem>(feedProvider: AnyQueryableFeed<GiphyItem>(GiphyQueryableFeed()),
                                                           onPageError: .retry(.delayed(maxCount: UInt.max, time: 3)))
+        self.reachabilityManager = reachabilityManager
         setup()
     }
     
@@ -92,6 +97,9 @@ class GiphySearchVM: GiphySearchVMProtocol {
         
         feedManger.errorOutput.bind(to: $errorOutput).disposed(by: bag)
 
+        reachabilityManager.reachability?.rx.isDisconnected.map { _ -> Error in
+            NSError(domain: "Custom", code: 0, userInfo: nil)
+        }.bind(to: $errorOutput).disposed(by: bag)
     }
     
     func getCurrentState() -> GiphySearchState {
