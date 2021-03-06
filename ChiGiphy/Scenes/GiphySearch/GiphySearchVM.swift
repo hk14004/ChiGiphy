@@ -36,7 +36,7 @@ class GiphySearchVM: GiphySearchVMProtocol {
     
     // MARK: Private
         
-    private let feedManger: QueryableFeedManager<GiphyItem>
+    private let feedManager: QueryableFeedManager<GiphyItem>
     
     private var bag = DisposeBag()
     
@@ -44,10 +44,14 @@ class GiphySearchVM: GiphySearchVMProtocol {
     
     // MARK: Init
 
-    init(reachabilityManager: ReachabilityManagerProtocol = ReachabilityManager.shared) {
-        self.feedManger = QueryableFeedManager<GiphyItem>(feedProvider: AnyQueryableFeed<GiphyItem>(GiphyQueryableFeed()),
-                                                          onPageError: .retry(.delayed(maxCount: UInt.max, time: 3)))
+    init(reachabilityManager: ReachabilityManagerProtocol = ReachabilityManager.shared,
+         feedManager: QueryableFeedManager<GiphyItem> = QueryableFeedManager<GiphyItem>(feedProvider: AnyQueryableFeed(GiphyQueryableFeed()))) {
+        
         self.reachabilityManager = reachabilityManager
+        
+        self.feedManager = QueryableFeedManager<GiphyItem>(feedProvider: AnyQueryableFeed<GiphyItem>(GiphyQueryableFeed()),
+                                                          onPageError: .retry(.delayed(maxCount: UInt.max, time: 3)))
+        
         setup()
     }
     
@@ -65,15 +69,15 @@ class GiphySearchVM: GiphySearchVMProtocol {
             .filter { !$0.isEmpty }
             .distinctUntilChanged()
             .debounce(queryDebounce, scheduler: DriverSharingStrategy.scheduler)
-            .bind(to: feedManger.queryInput)
+            .bind(to: feedManager.queryInput)
             .disposed(by: bag)
         
         // Respond to search -  output
-        feedManger.performingQueryOutput.filter{$0}.map { _ in .searching(.init()) }
+        feedManager.performingQueryOutput.filter{$0}.map { _ in .searching(.init()) }
             .bind(to: $stateOutput)
             .disposed(by: bag)
         
-        let gifCellsOutput = feedManger.itemsOutput.skip(1).map { gifModels in gifModels.map { GiphyCellVM(item: $0) }}.share()
+        let gifCellsOutput = feedManager.itemsOutput.skip(1).map { gifModels in gifModels.map { GiphyCellVM(item: $0) }}.share()
             
         gifCellsOutput.filter{$0.isEmpty}.map { _ in .notFound(.init())}
             .bind(to: $stateOutput)
@@ -93,23 +97,22 @@ class GiphySearchVM: GiphySearchVMProtocol {
             .distinctUntilChanged()
             .filter { $0 }
             .map { _ in }
-            .bind(to: feedManger.getNextPageTriggerInput)
+            .bind(to: feedManager.getNextPageTriggerInput)
             .disposed(by: bag)
         
         // Respond to load more - output
-        feedManger.performingGetNextPageOutput.filter{$0}.withLatestFrom(gifCellsOutput)
+        feedManager.performingGetNextPageOutput.filter{$0}.withLatestFrom(gifCellsOutput)
             .map { gifCells in  .loadingMore(gifCells, .init()) }
             .bind(to: $stateOutput)
             .disposed(by: bag)
     }
     
     private func bindErrors() {
-        feedManger.errorOutput.bind(to: $errorOutput).disposed(by: bag)
+        feedManager.errorOutput.bind(to: $errorOutput).disposed(by: bag)
     }
     
     private func bindNetworkStatus() {
         reachabilityManager.reachability.rx.isReachable.bind(to: $isRechableOutput).disposed(by: bag)
-
     }
     
     func getCurrentState() -> GiphySearchState {
