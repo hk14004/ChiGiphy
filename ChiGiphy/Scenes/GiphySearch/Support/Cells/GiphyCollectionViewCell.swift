@@ -51,7 +51,7 @@ class GiphyCollectionViewCell: UICollectionViewCell {
     
     override func prepareForReuse() {
         super.prepareForReuse()
-        //giphyImageView.clear()
+        giphyImageView.clear()
         bag = DisposeBag()
     }
     
