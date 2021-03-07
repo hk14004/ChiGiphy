@@ -77,7 +77,7 @@ class GiphyCollectionViewCell: UICollectionViewCell {
     
     func setup(with viewModel: GiphyCellVMProtocol) {
         viewModel.state
-            .observeOn(MainScheduler.instance)
+            .asObservable()
             .subscribe(onNext: {[unowned self] state in
             switch state {
             case .initial, .downloading:

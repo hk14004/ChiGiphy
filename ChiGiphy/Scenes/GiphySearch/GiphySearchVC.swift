@@ -72,8 +72,8 @@ final class GiphySearchVC: UIViewController {
     private func bindToViewModel() {
         let sections: Observable<[GiphySection]> =
             viewModel.stateOutput
+            .asObservable()
             .debounce(0.1, scheduler: MainScheduler.instance)
-            .observeOn(MainScheduler.instance)
             .map({ state in
                 switch state {
                 case .found(let gifsVMs):
@@ -94,7 +94,7 @@ final class GiphySearchVC: UIViewController {
         sections.bind(to: gifCollectionView.rx.items(dataSource: dataSource)).disposed(by: bag)
         
         // Scrolls to top to reset state between searches
-        viewModel.stateOutput.subscribe(onNext: { [unowned self] (state) in
+        viewModel.stateOutput.asObservable().subscribe(onNext: { [unowned self] (state) in
             if case .searching(_) = state {
                 gifCollectionView.scrollToItem(at: .init(row: 0, section: 0), at: .top, animated: false)
             }
@@ -106,11 +106,11 @@ final class GiphySearchVC: UIViewController {
             .bind(to: viewModel.indexPathWillBeShownInput)
             .disposed(by: bag)
         
-        viewModel.errorOutput.observeOn(MainScheduler.instance).subscribe(onNext: { error in
+        viewModel.errorOutput.asObservable().subscribe(onNext: { error in
             InfoView.showIn(viewController: self, message: error.localizedDescription)
         }).disposed(by: bag)
         
-        viewModel.isRechableOutput.observeOn(MainScheduler.instance).subscribe(onNext: { isReachable in
+        viewModel.isRechableOutput.asObservable().subscribe(onNext: { isReachable in
             if isReachable {
                 InfoView.sharedView?.fadeOut()
             } else {
@@ -149,10 +149,15 @@ final class GiphySearchVC: UIViewController {
         constrain(gifCollectionView, view.safeAreaLayoutGuide) { $0.edges == $1.edges }
     }
     
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        gifCollectionView.collectionViewLayout.invalidateLayout()
-    }
+//    override func viewDidLayoutSubviews() {
+//        super.viewDidLayoutSubviews()
+//        gifCollectionView.collectionViewLayout.invalidateLayout()
+//    }
+    
+//    override func viewWillLayoutSubviews() {
+//        super.viewWillLayoutSubviews()
+//        gifCollectionView.collectionViewLayout.invalidateLayout()
+//    }
     private func registerCollectionViewCells() {
         gifCollectionView.register(GiphyCollectionViewCell.self,
                                    forCellWithReuseIdentifier: GiphyCollectionViewCell.reuseIdentifier)

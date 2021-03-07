@@ -20,15 +20,15 @@ protocol GiphyCellVMProtocol {
     
     // MARK: Output
     
-    var state: Observable<GiphyCellVMState> { get }
+    var state: Driver<GiphyCellVMState> { get }
     var size: CGSize { get }
 }
 
 class GiphyCellVM: GiphyCellVMProtocol{
-    
+
     // MARK: Output
     
-    @VMProperty(.initial) var state: Observable<GiphyCellVMState>
+    @VMProperty(.initial) var state: Driver<GiphyCellVMState>
     
     // MARK: Vars
     

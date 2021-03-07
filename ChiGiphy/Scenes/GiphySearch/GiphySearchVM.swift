@@ -28,11 +28,11 @@ class GiphySearchVM: GiphySearchVMProtocol {
     
     // MARK: Output
     
-    @VMProperty(.initial(.init())) var stateOutput: Observable<GiphySearchState>
+    @VMProperty(.initial(.init())) var stateOutput: Driver<GiphySearchState>
     
-    @VMOutput var errorOutput: Observable<Error>
+    @VMOutput var errorOutput: Driver<Error>
     
-    @VMOutput var isRechableOutput: Observable<Bool>
+    @VMOutput var isRechableOutput: Driver<Bool>
     
     // MARK: Private
         
@@ -146,11 +146,11 @@ protocol GiphySearchVMProtocol {
     
     // MARK: Output
     
-    var stateOutput: Observable<GiphySearchState> { get }
+    var stateOutput: Driver<GiphySearchState> { get }
     
-    var errorOutput: Observable<Error> { get }
+    var errorOutput: Driver<Error> { get }
     
-    var isRechableOutput: Observable<Bool> { get }
+    var isRechableOutput: Driver<Bool> { get }
     
     // MARK: Methods
     

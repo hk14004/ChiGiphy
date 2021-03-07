@@ -32,8 +32,8 @@ struct VMProperty<T> {
         self.relay = .init(value: defaultValue)
     }
 
-    var wrappedValue: Observable<T> {
-        return relay.asObservable()
+    var wrappedValue: Driver<T> {
+        return relay.asDriver()
     }
 
     var projectedValue: BehaviorRelay<T> {
@@ -46,8 +46,10 @@ struct VMOutput<T> {
 
     private let subject = PublishSubject<T>()
 
-    var wrappedValue: Observable<T> {
-        return subject.asObservable()
+    var wrappedValue: Driver<T> {
+        return subject.asDriver { (error) -> Driver<T> in
+            fatalError(error.localizedDescription)
+        }
     }
 
     var projectedValue: PublishSubject<T> {
