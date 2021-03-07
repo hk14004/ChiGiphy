@@ -6,15 +6,15 @@
 //
 
 import UIKit
-import Gifu
 import RxSwift
 import Cartography
+import SwiftyGif
 
 class GiphyCollectionViewCell: UICollectionViewCell {
     
     // MARK: Vars
     
-    private let giphyImageView = GIFImageView()
+    private let giphyImageView = UIImageView()
     
     private let activityIndicator = UIActivityIndicatorView()
     
@@ -51,8 +51,7 @@ class GiphyCollectionViewCell: UICollectionViewCell {
     
     override func prepareForReuse() {
         super.prepareForReuse()
-        giphyImageView.prepareForReuse()
-        giphyImageView.updateImageIfNeeded()
+        //giphyImageView.clear()
         bag = DisposeBag()
     }
     
@@ -64,14 +63,14 @@ class GiphyCollectionViewCell: UICollectionViewCell {
     private func changeState(readyToAnimate: Bool) {
         if readyToAnimate {
             activityIndicator.stopAnimating()
-            giphyImageView.startAnimatingGIF()
+            giphyImageView.startAnimating()
             UIView.animate(withDuration: 0.3) {
                 self.giphyImageView.isHidden = !readyToAnimate
                 self.giphyImageView.alpha = 1
             }
         } else {
             activityIndicator.startAnimating()
-            giphyImageView.stopAnimatingGIF()
+            giphyImageView.stopAnimating()
             giphyImageView.alpha = 0
         }
     }
@@ -84,21 +83,14 @@ class GiphyCollectionViewCell: UICollectionViewCell {
             case .initial, .downloading:
                 changeState(readyToAnimate: false)
             case .downloaded(let gifData):
-                prepareForAnimation(with: gifData)
-                    .observeOn(MainScheduler.instance)
-                    .subscribe(onCompleted: {
-                        changeState(readyToAnimate: true)
-                }).disposed(by: bag)
+                do {
+                    let gifImage = try UIImage(gifData: gifData)
+                    giphyImageView.setGifImage(gifImage)
+                    changeState(readyToAnimate: true)
+                } catch {
+                    print(error.localizedDescription)
+                }
             }
         }).disposed(by: bag)
-    }
-        
-    private func prepareForAnimation(with gifData: Data) -> Observable<Void> {
-        return Observable.create { observer in
-            self.giphyImageView.prepareForAnimation(withGIFData: gifData, loopCount: 0) {
-                observer.onCompleted()
-            }
-            return Disposables.create()
-        }
     }
 }

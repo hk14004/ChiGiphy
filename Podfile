@@ -10,12 +10,12 @@ target 'ChiGiphy' do
   pod 'RxCocoa', '~> 4'
   pod 'RxDataSources', '~> 3.1'
   pod 'Action', '~> 3.9'
-  pod 'Gifu'
   pod 'Cartography', '~> 3.0'
   pod 'NVActivityIndicatorView'
   pod 'Alamofire'
   pod 'RxSwiftExt'
   pod 'RxReachability'
+  pod 'SwiftyGif'
   
   target 'ChiGiphyTests' do
       inherit! :search_paths
