@@ -93,10 +93,12 @@ final class GiphySearchVC: UIViewController {
                 
         sections.bind(to: gifCollectionView.rx.items(dataSource: dataSource)).disposed(by: bag)
         
-        // Scrolls to top to reset state between searches
-        viewModel.stateOutput.asObservable().subscribe(onNext: { [unowned self] (state) in
-            if case .searching(_) = state {
-                gifCollectionView.scrollToItem(at: .init(row: 0, section: 0), at: .top, animated: false)
+        // Scrolls to top to reset state between searches - better to provide empty array though
+        viewModel.stateOutput.asObservable().scan([]) { (previous, current) in
+            Array(previous + [current]).suffix(2)
+        }.subscribe(onNext: { [unowned self] (lastStates) in
+            if case .searching(_) = lastStates[0],  case .found(_) = lastStates[1] {
+                gifCollectionView.scrollToItem(at: .init(row: 0, section: 0), at: .top, animated: true)
             }
         }).disposed(by: bag)
         
@@ -149,15 +151,6 @@ final class GiphySearchVC: UIViewController {
         constrain(gifCollectionView, view.safeAreaLayoutGuide) { $0.edges == $1.edges }
     }
     
-//    override func viewDidLayoutSubviews() {
-//        super.viewDidLayoutSubviews()
-//        gifCollectionView.collectionViewLayout.invalidateLayout()
-//    }
-    
-//    override func viewWillLayoutSubviews() {
-//        super.viewWillLayoutSubviews()
-//        gifCollectionView.collectionViewLayout.invalidateLayout()
-//    }
     private func registerCollectionViewCells() {
         gifCollectionView.register(GiphyCollectionViewCell.self,
                                    forCellWithReuseIdentifier: GiphyCollectionViewCell.reuseIdentifier)
