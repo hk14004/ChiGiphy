@@ -130,7 +130,7 @@ final class GiphySearchVC: UIViewController {
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.searchBar.placeholder = NSLocalizedString("Search", comment: "")
         navigationItem.searchController = searchController
-        navigationController?.navigationBar.isTranslucent = true
+        navigationController?.navigationBar.isTranslucent = false
     }
     
     private func setupCollectionViewLayout() {
