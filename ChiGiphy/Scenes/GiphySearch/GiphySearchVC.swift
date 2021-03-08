@@ -40,10 +40,29 @@ final class GiphySearchVC: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        configureSearchBar()
+        configureView()
+        configureNavigationBar()
         setupCollectionView()
         configureDataSource()
         bindToViewModel()
+    }
+    
+    private func configureNavigationBar() {
+        title = viewModel.title
+        configureSearchBar()
+    }
+    
+    private func configureSearchBar() {
+        navigationItem.hidesSearchBarWhenScrolling = false
+        searchController.automaticallyShowsCancelButton = false
+        searchController.hidesNavigationBarDuringPresentation = false
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.searchBar.placeholder = NSLocalizedString("Search", comment: "")
+        navigationItem.searchController = searchController
+    }
+    
+    private func configureView() {
+        view.backgroundColor = UIColor.PrimaryBackground
     }
     
     private func configureDataSource() {
@@ -122,16 +141,7 @@ final class GiphySearchVC: UIViewController {
         }).disposed(by: bag)
     }
     
-    private func configureSearchBar() {
-        navigationItem.hidesSearchBarWhenScrolling = false
-        searchController.automaticallyShowsCancelButton = false
-        searchController.hidesNavigationBarDuringPresentation = false
-        searchController.searchBar.text = ""
-        searchController.obscuresBackgroundDuringPresentation = false
-        searchController.searchBar.placeholder = NSLocalizedString("Search", comment: "")
-        navigationItem.searchController = searchController
-        navigationController?.navigationBar.isTranslucent = false
-    }
+
     
     private func setupCollectionViewLayout() {
         let layout = CHTCollectionViewWaterfallLayout()
@@ -147,6 +157,7 @@ final class GiphySearchVC: UIViewController {
         setupCollectionViewLayout()
         registerCollectionViewCells()
         gifCollectionView.backgroundColor = UIColor.PrimaryBackground
+        gifCollectionView.showsVerticalScrollIndicator = false
         view.addSubview(gifCollectionView)
         constrain(gifCollectionView, view.safeAreaLayoutGuide) { $0.edges == $1.edges }
     }

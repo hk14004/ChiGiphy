@@ -20,6 +20,8 @@ class GiphySearchVM: GiphySearchVMProtocol {
     
     let queryDebounce = 0.5
     
+    let title: String = "Giphy Search"
+    
     // MARK: Input
         
     @VMInput var indexPathWillBeShownInput: AnyObserver<IndexPath>
@@ -137,6 +139,8 @@ protocol GiphySearchVMProtocol {
     
     /// Query input interval
     var queryDebounce: Double { get }
+    
+    var title: String { get }
     
     // MARK: Input
 
